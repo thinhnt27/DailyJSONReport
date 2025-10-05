@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Prisma } from '@prisma/client';
+import { PrismaRepoFactory } from './repo-factory.prisma';
 import { PrismaUnitOfWork } from './prisma-unit-of-work';
 import { PrismaService } from './prisma.service';
-import { PrismaRepoFactory } from './repo-factory.prisma';
 
 type TransactionCallback<T> = (tx: Prisma.TransactionClient) => Promise<T>;
 
