@@ -1,0 +1,1051 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model activity_logs {
+  id            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timestamp     DateTime               @default(now()) @db.Timestamptz(6)
+  actor_id      String?                @db.Uuid
+  actor_name    String?                @db.VarChar(255)
+  action        String                 @db.VarChar(100)
+  resource_type String?                @db.VarChar(100)
+  resource_id   String?                @db.VarChar(100)
+  message       String?
+  severity      activity_severity_enum @default(info)
+  meta          Json?
+  ip            String?                @db.VarChar(50)
+  action_enum   activity_action_enum?
+  resource_name String?                @db.VarChar
+  users         users?                 @relation(fields: [actor_id], references: [user_id], map: "fk_activity_logs_actor")
+
+  @@index([actor_id], map: "idx_al_actor")
+  @@index([action], map: "idx_al_action")
+  @@index([resource_type], map: "idx_al_resource_type")
+  @@index([severity], map: "idx_al_severity")
+  @@index([timestamp], map: "idx_al_timestamp")
+  @@index([actor_id], map: "idx_activity_logs_actor_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model alerts {
+  alert_id                            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id                            String            @db.Uuid
+  user_id                             String            @db.Uuid
+  alert_type                          alert_type_enum
+  severity                            severity_enum     @default(medium)
+  alert_message                       String
+  alert_data                          Json?
+  status                              alert_status_enum @default(active)
+  acknowledged_by                     String?           @db.Uuid
+  acknowledged_at                     DateTime?         @db.Timestamptz(6)
+  resolution_notes                    String?
+  created_at                          DateTime          @default(now()) @db.Timestamptz(6)
+  resolved_at                         DateTime?         @db.Timestamptz(6)
+  users_alerts_acknowledged_byTousers users?            @relation("alerts_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
+  event_detections                    event_detections  @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  users_alerts_user_idTousers         users             @relation("alerts_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
+  notifications                       notifications[]
+
+  @@index([acknowledged_by], map: "idx_alerts_ack_by")
+  @@index([created_at], map: "idx_alerts_created")
+  @@index([event_id], map: "idx_alerts_event")
+  @@index([severity], map: "idx_alerts_severity")
+  @@index([status], map: "idx_alerts_status")
+  @@index([alert_type], map: "idx_alerts_type")
+  @@index([user_id], map: "idx_alerts_user")
+  @@index([user_id, status, created_at], map: "idx_alerts_user_status")
+}
+
+model app_client_roles {
+  app_id      String      @db.Uuid
+  role        role_enum
+  app_clients app_clients @relation(fields: [app_id], references: [app_id], onDelete: Cascade)
+
+  @@id([app_id, role])
+  @@index([role], map: "idx_app_client_roles_role")
+}
+
+model app_clients {
+  app_id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String             @unique @db.VarChar(50)
+  name             String
+  app_client_roles app_client_roles[]
+
+  @@index([code], map: "idx_app_clients_code")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cameras {
+  camera_id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String             @db.Uuid
+  camera_name       String             @db.VarChar(100)
+  camera_type       camera_type_enum   @default(ip)
+  ip_address        String?            @unique @db.VarChar(45)
+  port              Int?               @default(80)
+  rtsp_url          String?            @db.VarChar(255)
+  username          String?            @db.VarChar(50)
+  password          String?            @db.VarChar(100)
+  location_in_room  String?            @db.VarChar(50)
+  resolution        String?            @default("1920x1080") @db.VarChar(20)
+  fps               Int?               @default(30)
+  status            camera_status_enum @default(active)
+  last_ping         DateTime?          @db.Timestamptz(6)
+  is_online         Boolean            @default(true)
+  last_heartbeat_at DateTime?          @db.Timestamptz(6)
+  created_at        DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime           @default(now()) @db.Timestamptz(6)
+  camera_issues     camera_issues[]
+  users             users              @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  event_detections  event_detections[]
+  snapshots         snapshots[]
+
+  @@index([last_ping], map: "idx_cameras_last_ping")
+  @@index([status], map: "idx_cameras_status")
+  @@index([camera_type], map: "idx_cameras_type")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model caregiver_invitations {
+  assignment_id    String    @id(map: "caregiver_patient_assignments_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caregiver_id     String    @db.Uuid
+  customer_id      String    @db.Uuid
+  assigned_at      DateTime  @default(now()) @db.Timestamptz(6)
+  unassigned_at    DateTime? @db.Timestamptz(6)
+  is_active        Boolean   @default(true)
+  assigned_by      String?   @db.Uuid
+  assignment_notes String?
+  status           String?   @default("pending") @db.VarChar(20)
+  users            users?    @relation(fields: [assigned_by], references: [user_id], map: "caregiver_assignments_assigned_by_fkey")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model emergency_contacts {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String   @db.Uuid
+  name        String   @db.VarChar(100)
+  relation    String   @db.VarChar(50)
+  phone       String   @db.VarChar(20)
+  alert_level Int      @db.SmallInt
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  is_deleted  Boolean  @default(false)
+  users       users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([user_id, phone], map: "unique_user_phone")
+  @@index([user_id], map: "idx_emergency_contacts_user_id")
+  @@index([alert_level], map: "idx_emergency_contacts_alert_level")
+  @@index([phone], map: "idx_emergency_contacts_phone")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model event_detections {
+  notes                                     String?
+  event_id                                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  snapshot_id                               String             @db.Uuid
+  user_id                                   String             @db.Uuid
+  camera_id                                 String             @db.Uuid
+  event_type                                event_type_enum
+  event_description                         String?
+  detection_data                            Json?
+  ai_analysis_result                        Json?
+  confidence_score                          Decimal?           @default(0.00) @db.Decimal(5, 2)
+  bounding_boxes                            Json?
+  context_data                              Json?
+  detected_at                               DateTime           @default(now()) @db.Timestamptz(6)
+  verified_at                               DateTime?          @db.Timestamptz(6)
+  verified_by                               String?            @db.Uuid
+  acknowledged_at                           DateTime?          @db.Timestamptz(6)
+  acknowledged_by                           String?            @db.Uuid
+  dismissed_at                              DateTime?          @db.Timestamptz(6)
+  created_at                                DateTime           @default(now()) @db.Timestamptz(6)
+  confirm_status                            Boolean?
+  status                                    event_status_enum?
+  alerts                                    alerts[]
+  cameras                                   cameras            @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
+  snapshots                                 snapshots          @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade)
+  users_event_detections_user_idTousers     users              @relation("event_detections_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
+  users_event_detections_verified_byTousers users?             @relation("event_detections_verified_byTousers", fields: [verified_by], references: [user_id])
+
+  @@index([acknowledged_at], map: "idx_ed_ack_at")
+  @@index([camera_id], map: "idx_ed_camera")
+  @@index([confidence_score], map: "idx_ed_conf")
+  @@index([detected_at], map: "idx_ed_detected")
+  @@index([dismissed_at], map: "idx_ed_dismissed_at")
+  @@index([snapshot_id], map: "idx_ed_snapshot")
+  @@index([event_type], map: "idx_ed_type")
+  @@index([user_id], map: "idx_ed_user")
+  @@index([verified_by], map: "idx_ed_verified_by")
+  @@index([user_id, detected_at], map: "idx_events_user_date")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fcm_tokens {
+  token_id     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String             @db.Uuid
+  device_id    String?            @db.VarChar(100)
+  token        String             @unique
+  platform     push_platform_enum
+  app_version  String?            @db.VarChar(50)
+  device_model String?            @db.VarChar(100)
+  os_version   String?            @db.VarChar(50)
+  topics       Json?
+  is_active    Boolean            @default(true)
+  last_used_at DateTime?          @db.Timestamptz(6)
+  revoked_at   DateTime?          @db.Timestamptz(6)
+  created_at   DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime           @default(now()) @db.Timestamptz(6)
+  users        users              @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([user_id, device_id], map: "unique_fcm_user_device")
+  @@index([is_active], map: "idx_fcm_active")
+  @@index([last_used_at], map: "idx_fcm_last_used")
+  @@index([platform], map: "idx_fcm_platform")
+  @@index([user_id], map: "idx_fcm_user")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notifications {
+  notification_id   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alert_id          String            @db.Uuid
+  user_id           String            @db.Uuid
+  notification_type notif_type_enum
+  message           String
+  delivery_data     Json?
+  status            notif_status_enum @default(pending)
+  sent_at           DateTime?         @db.Timestamptz(6)
+  delivered_at      DateTime?         @db.Timestamptz(6)
+  retry_count       Int?              @default(0)
+  error_message     String?
+  read_at           DateTime?         @db.Timestamptz(6)
+  alert             alerts            @relation(fields: [alert_id], references: [alert_id], onDelete: Cascade)
+  users             users             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([alert_id], map: "idx_notif_alert")
+  @@index([retry_count], map: "idx_notif_retry")
+  @@index([sent_at], map: "idx_notif_sent")
+  @@index([status], map: "idx_notif_status")
+  @@index([notification_type], map: "idx_notif_type")
+  @@index([notification_type, status], map: "idx_notif_type_status")
+  @@index([user_id], map: "idx_notif_user")
+  @@index([read_at], map: "idx_notif_read")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model patient_habits {
+  habit_id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  habit_type          habit_type_enum
+  habit_name          String               @db.VarChar(200)
+  description         String?
+  typical_time        DateTime?            @db.Time(6)
+  duration_minutes    Int?                 @default(30)
+  frequency           frequency_enum       @default(daily)
+  days_of_week        Json?
+  location            String?              @db.VarChar(100)
+  notes               String?
+  is_active           Boolean              @default(true)
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime             @default(now()) @db.Timestamptz(6)
+  supplement_id       String?              @db.Uuid
+  user_id             String               @unique(map: "patient_habits_userId_key") @db.Uuid
+  patient_supplements patient_supplements? @relation(fields: [supplement_id], references: [id], onDelete: Cascade)
+  users               users                @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([frequency], map: "idx_ph_frequency")
+  @@index([habit_type], map: "idx_ph_habit_type")
+  @@index([is_active], map: "idx_ph_is_active")
+  @@index([supplement_id], map: "idx_ph_supplement")
+  @@index([typical_time], map: "idx_ph_typical_time")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model patient_medical_records {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conditions          Json                 @default("[]")
+  medications         Json                 @default("[]")
+  history             Json                 @default("[]")
+  updated_at          DateTime             @default(now()) @db.Timestamptz(6)
+  supplement_id       String?              @db.Uuid
+  patient_supplements patient_supplements? @relation(fields: [supplement_id], references: [id], onDelete: Cascade)
+
+  @@index([supplement_id], map: "idx_pmr_supplement")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model patient_supplements {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String?
+  dob                     DateTime?                 @db.Date
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  customer_id             String?                   @db.Uuid
+  avatar_url              String?
+  call_confirmed_until    DateTime?                 @db.Timestamptz(6)
+  patient_habits          patient_habits[]
+  patient_medical_records patient_medical_records[]
+  users                   users?                    @relation(fields: [customer_id], references: [user_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payments {
+  payment_id      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String        @db.Uuid
+  amount          BigInt
+  description     String?
+  vnp_txn_ref     String?       @unique @db.VarChar(50)
+  status          String        @default("pending") @db.VarChar(20)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  plan_code       String?
+  plan_id         String?       @db.Uuid
+  vnp_create_date BigInt?
+  vnp_expire_date BigInt?
+  vnp_order_info  String?
+  version         String?       @db.VarChar(20)
+  plans           plans?        @relation("PaymentToPlan", fields: [plan_id], references: [id], map: "fk_payments_plan_id")
+  users           users         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  transaction     transaction[]
+
+  @@index([plan_code], map: "idx_payments_plan_code")
+  @@index([plan_id], map: "idx_payments_plan_id")
+  @@index([status], map: "idx_payments_status")
+  @@index([user_id], map: "idx_payments_user_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model plans {
+  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                   String
+  name                   String
+  price                  BigInt
+  camera_quota           Int
+  retention_days         Int
+  caregiver_seats        Int
+  sites                  Int              @default(1)
+  major_updates_months   Int              @default(24)
+  created_at             DateTime?        @default(now()) @db.Timestamptz(6)
+  storage_size           String?          @db.VarChar
+  is_recommended         Boolean          @default(false)
+  tier                   Int              @default(1)
+  currency               String           @default("VND") @db.VarChar(3)
+  status                 plan_status_enum @default(available)
+  is_current             Boolean?
+  version                String           @db.VarChar
+  effective_from         DateTime?        @db.Timestamptz(6)
+  effective_to           DateTime?        @db.Timestamptz(6)
+  successor_plan_code    String?          @db.VarChar
+  successor_plan_version String?          @db.VarChar(20)
+  billing_period_days    Int              @default(30)
+  payments               payments[]       @relation("PaymentToPlan")
+  subscriptions          subscriptions[]  @relation("SubscriptionToPlan")
+  transactions           transaction[]    @relation("TransactionToPlan")
+
+  @@unique([code, version], map: "unique_plan_code_version")
+  @@index([code], map: "idx_plans_code")
+  @@index([is_current], map: "idx_plans_is_current")
+  @@index([status], map: "idx_plans_status")
+  @@index([effective_from], map: "idx_plans_effective_from")
+  @@index([effective_to], map: "idx_plans_effective_to")
+  @@index([code, is_current], map: "idx_plans_code_current")
+}
+
+/// transaction: bản ghi thanh toán/kỳ hiệu lực, snapshot cấu hình gói tại thời điểm giao dịch
+model transaction {
+  tx_id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agreement_id         String            @db.Uuid
+  plan_code            String
+  plan_id              String?           @db.Uuid
+  plan_snapshot        Json
+  amount_subtotal      BigInt
+  amount_discount      BigInt            @default(0)
+  amount_tax           BigInt            @default(0)
+  amount_total         BigInt
+  currency             String            @default("VND") @db.VarChar(3)
+  period_start         DateTime          @db.Timestamptz(6)
+  period_end           DateTime          @db.Timestamptz(6)
+  status               TransactionStatus
+  effective_action     TransactionAction
+  provider             PaymentProvider
+  provider_payment_id  String?           @db.VarChar(100)
+  idempotency_key      String?           @db.VarChar(100)
+  related_tx_id        String?           @db.Uuid
+  notes                String?
+  created_at           DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime          @updatedAt @db.Timestamptz(6)
+  is_proration         Boolean           @default(false)
+  payment_id           String?           @db.Uuid
+  plan_snapshot_new    Json?
+  plan_snapshot_old    Json?
+  proration_charge     BigInt            @default(0)
+  proration_credit     BigInt            @default(0)
+  version              String?           @db.VarChar(20)
+  invoices             invoices[]
+  subscriptions        subscriptions     @relation(fields: [agreement_id], references: [subscription_id], onDelete: Cascade)
+  payments             payments?         @relation(fields: [payment_id], references: [payment_id])
+  plans                plans?            @relation("TransactionToPlan", fields: [plan_id], references: [id])
+  related_tx           transaction?      @relation("RelatedTx", fields: [related_tx_id], references: [tx_id])
+  related_transactions transaction[]     @relation("RelatedTx")
+
+  @@unique([agreement_id, idempotency_key], map: "uq_tx_idempotency_per_agreement")
+  @@index([payment_id], map: "idx_tx_payment")
+  @@index([tx_id], map: "idx_pay_tx")
+  @@index([agreement_id], map: "idx_tx_agreement")
+  @@index([status], map: "idx_tx_status")
+  @@index([period_start], map: "idx_tx_period_start")
+  @@index([period_end], map: "idx_tx_period_end")
+  @@index([provider_payment_id], map: "idx_tx_provider_payment_id")
+  @@index([plan_code], map: "idx_tx_plan_code")
+  @@index([plan_id], map: "idx_tx_plan_id")
+  @@map("transactions")
+}
+
+/// Invoice: bản ghi hóa đơn với snapshot giá tại thời điểm tạo
+model invoices {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id String              @db.Uuid
+  transaction_id  String?             @db.Uuid
+  status          invoice_status_enum @default(draft)
+  invoice_number  String?             @unique @db.VarChar(50)
+  currency        String              @default("VND") @db.VarChar(3)
+  subtotal_amount BigInt              @default(0)
+  tax_amount      BigInt              @default(0)
+  discount_amount BigInt              @default(0)
+  total_amount    BigInt
+  period_start    DateTime            @db.Timestamptz(6)
+  period_end      DateTime            @db.Timestamptz(6)
+  due_date        DateTime?           @db.Timestamptz(6)
+  paid_at         DateTime?           @db.Timestamptz(6)
+  snapshot        Json
+  description     String?
+  created_at      DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
+  subscriptions   subscriptions       @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
+  transaction     transaction?        @relation(fields: [transaction_id], references: [tx_id])
+
+  @@index([subscription_id], map: "idx_invoices_subscription")
+  @@index([status], map: "idx_invoices_status")
+  @@index([period_start], map: "idx_invoices_period_start")
+  @@index([period_end], map: "idx_invoices_period_end")
+  @@index([due_date], map: "idx_invoices_due_date")
+  @@map("invoices")
+}
+
+/// Email templates for dynamic email rendering
+model email_templates {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String   @unique @db.VarChar(100)
+  type             String   @db.VarChar(50)
+  subject_template String   @db.VarChar(255)
+  html_template    String
+  text_template    String?
+  variables        Json?
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([type], map: "idx_email_templates_type")
+  @@index([is_active], map: "idx_email_templates_active")
+}
+
+model snapshot_images {
+  image_id    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  snapshot_id String    @db.Uuid
+  image_path  String?
+  cloud_url   String?
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  file_size   BigInt?
+  snapshots   snapshots @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_snapshot_images_snapshot")
+
+  @@index([created_at], map: "idx_snapshot_images_created_at")
+  @@index([snapshot_id], map: "idx_snapshot_images_snapshot_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model snapshots {
+  snapshot_id      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  camera_id        String             @db.Uuid
+  user_id          String?            @db.Uuid
+  metadata         Json?
+  capture_type     capture_type_enum  @default(scheduled)
+  captured_at      DateTime           @default(now()) @db.Timestamptz(6)
+  processed_at     DateTime?          @db.Timestamptz(6)
+  is_processed     Boolean            @default(false)
+  event_detections event_detections[]
+  snapshot_images  snapshot_images[]
+  cameras          cameras            @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
+  users            users?             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([camera_id], map: "idx_sn_camera")
+  @@index([captured_at], map: "idx_sn_captured")
+  @@index([is_processed], map: "idx_sn_processed")
+  @@index([capture_type], map: "idx_sn_type")
+  @@index([user_id], map: "idx_sn_user")
+  @@index([user_id, captured_at], map: "idx_sn_user_captured")
+  @@index([camera_id, captured_at], map: "idx_snaps_camera_date")
+}
+
+model subscription_events {
+  id              BigInt                       @id @default(autoincrement())
+  subscription_id String                       @db.Uuid
+  event_type      subscription_event_type_enum
+  event_data      Json?
+  created_at      DateTime                     @default(now()) @db.Timestamptz(6)
+  subscriptions   subscriptions                @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
+
+  @@index([subscription_id], map: "idx_sub_events_sub")
+  @@index([event_type], map: "idx_sub_events_type")
+}
+
+model subscriptions {
+  subscription_id       String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String                   @db.Uuid
+  plan_code             String
+  plan_id               String?                  @db.Uuid
+  status                subscription_status_enum @default(active)
+  billing_period        billing_period_enum      @default(none)
+  started_at            DateTime                 @default(now()) @db.Timestamptz(6)
+  current_period_start  DateTime                 @default(now()) @db.Timestamptz(6)
+  current_period_end    DateTime?                @db.Timestamptz(6)
+  trial_end_at          DateTime?                @db.Timestamptz(6)
+  canceled_at           DateTime?                @db.Timestamptz(6)
+  ended_at              DateTime?                @db.Timestamptz(6)
+  auto_renew            Boolean                  @default(true)
+  extra_camera_quota    Int                      @default(0)
+  extra_caregiver_seats Int                      @default(0)
+  extra_sites           Int                      @default(0)
+  extra_storage_gb      Int                      @default(0)
+  notes                 String?
+  last_payment_at       DateTime?                @db.Timestamptz(6)
+  version               String?                  @db.VarChar(20)
+  cancel_at_period_end  Boolean                  @default(false)
+  invoices              invoices[]
+  subscription_events   subscription_events[]
+  plans                 plans?                   @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
+  users                 users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  transactions          transaction[]
+
+  @@index([current_period_end], map: "idx_sub_current_end")
+  @@index([plan_code], map: "idx_sub_plan")
+  @@index([plan_id], map: "idx_sub_plan_id")
+  @@index([status], map: "idx_sub_status")
+  @@index([user_id], map: "idx_sub_user")
+  @@index([user_id, status], map: "idx_sub_user_status")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model search_history {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String   @db.Uuid
+  query        String?  @db.VarChar(500)
+  filters      Json?
+  result_count Int      @default(0)
+  searched_at  DateTime @default(now()) @db.Timestamptz(6)
+  users        users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_search_history_user")
+  @@index([searched_at], map: "idx_search_history_searched_at")
+  @@index([user_id, searched_at], map: "idx_search_history_user_searched_at")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model system_settings {
+  setting_id    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  setting_key   String         @unique(map: "idx_system_settings_key") @db.VarChar(100)
+  setting_value String
+  description   String?
+  data_type     data_type_enum @default(string)
+  category      String?        @default("general") @db.VarChar(50)
+  is_encrypted  Boolean?       @default(false)
+  updated_at    DateTime       @default(now()) @db.Timestamptz(6)
+  updated_by    String         @db.Uuid
+  users         users          @relation(fields: [updated_by], references: [user_id])
+
+  @@index([category], map: "idx_ss_category")
+  @@index([data_type], map: "idx_ss_dtype")
+  @@index([setting_key], map: "idx_ss_key")
+  @@index([updated_by], map: "idx_ss_updated_by")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model users {
+  user_id                                                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                                                  String                  @unique @db.VarChar(50)
+  email                                                     String                  @unique @db.VarChar(100)
+  password_hash                                             String                  @db.VarChar(255)
+  full_name                                                 String                  @db.VarChar(100)
+  role                                                      role_enum               @default(customer)
+  date_of_birth                                             DateTime?               @db.Date
+  phone_number                                              String?                 @db.VarChar(20)
+  is_active                                                 Boolean                 @default(true)
+  created_at                                                DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at                                                DateTime                @default(now()) @db.Timestamptz(6)
+  otp_code                                                  String?
+  otp_expires_at                                            DateTime?               @db.Timestamptz(6)
+  auth_user_id                                              String?                 @db.Uuid
+  activity_logs                                             activity_logs[]
+  alerts_alerts_acknowledged_byTousers                      alerts[]                @relation("alerts_acknowledged_byTousers")
+  alerts_alerts_user_idTousers                              alerts[]                @relation("alerts_user_idTousers")
+  camera_issues_reporter                                    camera_issues[]         @relation("camera_issues_reporter")
+  camera_issues_resolver                                    camera_issues[]         @relation("camera_issues_resolver")
+  camera_issues                                             camera_issues[]
+  cameras                                                   cameras[]
+  caregiver_invitations                                     caregiver_invitations[]
+  emergency_contacts                                        emergency_contacts[]
+  event_detections_event_detections_user_idTousers          event_detections[]      @relation("event_detections_user_idTousers")
+  event_detections_event_detections_verified_byTousers      event_detections[]      @relation("event_detections_verified_byTousers")
+  fcm_tokens                                                fcm_tokens[]
+  notifications                                             notifications[]
+  patient_habits                                            patient_habits?
+  patient_supplements                                       patient_supplements[]
+  payments                                                  payments[]
+  search_history                                            search_history[]
+  shared_permissions_shared_permissions_caregiver_idTousers shared_permissions[]    @relation("shared_permissions_caregiver_idTousers")
+  shared_permissions_shared_permissions_customer_idTousers  shared_permissions[]    @relation("shared_permissions_customer_idTousers")
+  snapshots                                                 snapshots[]
+  subscriptions                                             subscriptions[]
+  system_settings                                           system_settings[]
+  ticket                                                    ticket[]
+  uploads                                                   uploads[]
+  user_settings                                             user_settings[]
+
+  @@index([created_at], map: "idx_users_created_at")
+  @@index([email], map: "idx_users_email")
+  @@index([is_active], map: "idx_users_is_active")
+  @@index([role], map: "idx_users_role")
+  @@index([username], map: "idx_users_username")
+  @@index([phone_number], map: "idx_users_phone_number")
+}
+
+model shared_permissions {
+  id                                           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id                                  String   @db.Uuid
+  caregiver_id                                 String   @db.Uuid
+  stream_view                                  Boolean  @default(false)
+  alert_read                                   Boolean  @default(false)
+  alert_ack                                    Boolean  @default(false)
+  profile_view                                 Boolean  @default(false)
+  log_access_days                              Int?     @default(0)
+  report_access_days                           Int?     @default(0)
+  notification_channel                         Json?    @default("[]")
+  created_at                                   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime @default(now()) @db.Timestamptz(6)
+  users_shared_permissions_caregiver_idTousers users    @relation("shared_permissions_caregiver_idTousers", fields: [caregiver_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_shared_permissions_customer_idTousers  users    @relation("shared_permissions_customer_idTousers", fields: [customer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([customer_id, caregiver_id], map: "idx_unique_shared_permission_pair")
+  @@index([caregiver_id], map: "idx_shared_permissions_caregiver")
+}
+
+model ticket {
+  ticket_id   String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String                       @db.Uuid
+  type        customer_request_type_enum
+  title       String?
+  description String?
+  created_at  DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime                     @default(now()) @db.Timestamptz(6)
+  status      customer_request_status_enum @default(new)
+  users       users                        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([created_at], map: "idx_customer_requests_created_at")
+  @@index([type], map: "idx_customer_requests_type")
+  @@index([status], map: "idx_customer_requests_status")
+  @@index([user_id], map: "idx_customer_requests_user")
+}
+
+model camera_issues {
+  issue_id    String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  camera_id   String                     @db.Uuid
+  user_id     String                     @db.Uuid
+  issue_type  camera_issue_type_enum
+  severity    camera_issue_severity_enum
+  status      camera_issue_status_enum   @default(open)
+  description String?
+  phone       String?                    @db.VarChar(20)
+  notes       String?
+  attachments Json?
+  consent     Boolean?                   @default(false)
+  source      String                     @default("internal") @db.VarChar(20)
+  reported_by String?                    @db.Uuid
+  reported_at DateTime                   @default(now()) @db.Timestamptz(6)
+  resolved_by String?                    @db.Uuid
+  resolved_at DateTime?                  @db.Timestamptz(6)
+  resolution  String?
+  metadata    Json?
+  cameras     cameras                    @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
+  reporter    users?                     @relation("camera_issues_reporter", fields: [reported_by], references: [user_id])
+  resolver    users?                     @relation("camera_issues_resolver", fields: [resolved_by], references: [user_id])
+  users       users                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([camera_id], map: "idx_camera_issues_camera")
+  @@index([user_id], map: "idx_camera_issues_user")
+  @@index([reported_by], map: "idx_camera_issues_reported_by")
+  @@index([resolved_by], map: "idx_camera_issues_resolved_by")
+  @@index([status], map: "idx_camera_issues_status")
+  @@index([issue_type], map: "idx_camera_issues_type")
+  @@index([severity], map: "idx_camera_issues_severity")
+  @@index([reported_at], map: "idx_camera_issues_reported_at")
+  @@index([source], map: "idx_camera_issues_source")
+}
+
+model user_settings {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String    @db.Uuid
+  category      String
+  setting_key   String    @db.VarChar(100)
+  setting_value String
+  is_enabled    Boolean   @default(true)
+  is_overridden Boolean   @default(false)
+  overridden_at DateTime? @db.Timestamptz(6)
+  users         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, category, setting_key], map: "uq_user_setting")
+}
+
+model uploads {
+  upload_id   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String           @db.Uuid
+  filename    String           @db.VarChar(255)
+  mime        String           @db.VarChar(100)
+  size        Int
+  url         String           @db.VarChar(500)
+  upload_type upload_type_enum @default(other)
+  created_at  DateTime         @default(now()) @db.Timestamptz(6)
+  metadata    Json?
+  users       users            @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_uploads_user")
+  @@index([created_at], map: "idx_uploads_created")
+}
+
+model permissions {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String             @unique @db.VarChar(100)
+  description String?            @db.VarChar(255)
+  created_at  DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime           @default(now()) @db.Timestamptz(6)
+  roles       role_permissions[]
+
+  @@index([name], map: "idx_permissions_name")
+}
+
+model roles {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String             @unique @db.VarChar(50)
+  description String?            @db.VarChar(255)
+  created_at  DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime           @default(now()) @db.Timestamptz(6)
+  permissions role_permissions[]
+
+  @@index([name], map: "idx_roles_name")
+}
+
+model role_permissions {
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  assigned_at   DateTime    @default(now()) @db.Timestamptz(6)
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@index([permission_id], map: "idx_role_permissions_permission")
+  @@index([role_id], map: "idx_role_permissions_role")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model subscription_events_duplicates_backup {
+  id              BigInt?
+  subscription_id String?                       @db.Uuid
+  event_type      subscription_event_type_enum?
+  event_data      Json?
+  created_at      DateTime?                     @db.Timestamptz(6)
+
+  @@ignore
+}
+
+enum TransactionStatus {
+  pending
+  booked
+  succeeded
+  failed
+  canceled
+  refunded
+  chargeback
+}
+
+enum TransactionAction {
+  new
+  renew
+  upgrade
+  downgrade
+  adjustment
+}
+
+enum PaymentProvider {
+  vn_pay
+  stripe
+  manual
+}
+
+enum activity_severity_enum {
+  critical
+  high
+  medium
+  low
+  info
+}
+
+enum ai_result_enum {
+  success
+  error
+  timeout
+  skipped
+}
+
+enum ai_stage_enum {
+  preprocessing
+  detection
+  analysis
+  postprocessing
+}
+
+enum alert_status_enum {
+  active
+  acknowledged
+  resolved
+  dismissed
+}
+
+enum alert_type_enum {
+  emergency
+  warning
+  info
+  medication_reminder
+  habit_deviation
+}
+
+enum billing_period_enum {
+  monthly
+  yearly
+  none
+}
+
+enum camera_status_enum {
+  active
+  inactive
+  error
+}
+
+enum camera_type_enum {
+  ip
+  usb
+  rtsp
+}
+
+enum capture_type_enum {
+  scheduled
+  motion_triggered
+  manual
+  alert_triggered
+}
+
+enum customer_request_status_enum {
+  new
+  acknowledged
+  in_progress
+  resolved
+  rejected
+}
+
+enum customer_request_type_enum {
+  report
+  support
+}
+
+enum data_type_enum {
+  string
+  int
+  float
+  boolean
+  json
+}
+
+enum event_status_enum {
+  danger
+  warning
+  normal
+}
+
+enum event_type_enum {
+  fall
+  abnormal_behavior
+  emergency
+  normal_activity
+  medication_time
+  visitor_detected
+}
+
+enum frequency_enum {
+  daily
+  weekly
+  custom
+}
+
+enum gender_enum {
+  male
+  female
+  other
+}
+
+enum habit_type_enum {
+  sleep
+  meal
+  medication
+  activity
+  bathroom
+  therapy
+  social
+}
+
+enum notif_status_enum {
+  pending
+  sent
+  delivered
+  failed
+  bounced
+}
+
+enum notif_type_enum {
+  email
+  sms
+  push
+  in_app
+  webhook
+}
+
+enum overall_status_enum {
+  good
+  concerning
+  critical
+}
+
+enum push_platform_enum {
+  ios
+  android
+  web
+}
+
+enum role_enum {
+  customer
+  caregiver
+  admin
+}
+
+enum room_status_enum {
+  available
+  occupied
+  maintenance
+  closed
+}
+
+enum room_type_enum {
+  single
+  double
+  ward
+  icu
+  emergency
+  common
+}
+
+enum severity_enum {
+  critical
+  high
+  medium
+  low
+}
+
+enum subscription_event_type_enum {
+  created
+  activated
+  renewed
+  upgraded
+  downgraded
+  paused
+  resumed
+  canceled
+  expired
+}
+
+enum subscription_status_enum {
+  trialing
+  active
+  past_due
+  paused
+  suspended
+  canceled
+  expired
+}
+
+enum activity_action_enum {
+  create
+  update
+  delete
+  login
+  logout
+  acknowledge
+  assign
+  unassign
+}
+
+enum plan_status_enum {
+  draft
+  available
+  deprecated
+  archived
+}
+
+enum invoice_status_enum {
+  draft
+  open
+  paid
+  void
+  overdue
+}
+
+enum camera_issue_type_enum {
+  connection_error
+  authentication_error
+  network_error
+  hardware_error
+  configuration_error
+  performance_error
+  other
+}
+
+enum camera_issue_severity_enum {
+  low
+  medium
+  high
+  critical
+}
+
+enum camera_issue_status_enum {
+  open
+  investigating
+  resolved
+  closed
+}
+
+enum upload_type_enum {
+  camera_error
+  other
+}
