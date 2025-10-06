@@ -6,8 +6,8 @@ import type {
   IEventDetectionsRepo,
 } from '../domain/repositories/event-detections.repo.interface';
 import { EVENT_DETECTIONS_REPO } from '../domain/repositories/event-detections.repo.interface';
-import { LmStudioService } from './lmstudio.service';
-import { AiUserAnalysis } from '../interface/dto/ai-user-analysis.dto';
+import { LmStudioService } from '@modules/lm-studio/application/lmstudio.service';
+import { AiUserAnalysis } from '@modules/lm-studio/interface/dto/ai-user-analysis.dto';
 
 @Injectable()
 export class EventDetectionsService {
@@ -36,9 +36,40 @@ export class EventDetectionsService {
     options?: FetchEventsOptions,
   ): Promise<AiUserAnalysis[]> {
     const raw = await this.fetchEventsAndHabits(endDateIso, options);
-    console.log(raw);
-    const analyzed = await this.lmStudio.analyzeEventData(raw);
-    return analyzed; // đã parse JSON và kiểm tra là array ở LmStudioService
+    this.logger.debug('Raw events fetched for analysis', raw);
+
+    // Call LM Studio and defensively validate the response to avoid unsafe any
+    let analyzed: AiUserAnalysis[] = [];
+    try {
+      if (
+        this.lmStudio &&
+        typeof (this.lmStudio as unknown as Record<string, unknown>)
+          .analyzeEventData === 'function'
+      ) {
+        const result = await (
+          this.lmStudio as unknown as {
+            analyzeEventData(payload: unknown): Promise<unknown>;
+          }
+        ).analyzeEventData(raw as any);
+
+        if (Array.isArray(result)) {
+          analyzed = result as AiUserAnalysis[];
+        } else {
+          this.logger.warn(
+            'LmStudioService returned non-array result; returning empty array',
+          );
+        }
+      } else {
+        this.logger.warn(
+          'LmStudioService or its "analyzeEventData" method is not available; skipping analysis',
+        );
+      }
+    } catch (err) {
+      this.logger.error('LmStudio analysis failed', err as Error | string);
+      analyzed = [];
+    }
+
+    return analyzed; // đã parse JSON và kiểm tra là array ở đây
     // return []; // tạm thời chưa gọi LM Studio
   }
 }

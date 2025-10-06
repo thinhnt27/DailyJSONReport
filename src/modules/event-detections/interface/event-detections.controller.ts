@@ -1,8 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { EventDetectionsService } from '../application/event-detections.service';
-import { FetchEventsQueryDto } from './dto/fetch-events.dto';
 import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
-import { AiUserAnalysis } from './dto/ai-user-analysis.dto';
+import { FetchEventsQueryDto } from './dto/fetch-events.dto';
+import { AiUserAnalysis } from '../../lm-studio/interface/dto/ai-user-analysis.dto';
 
 @Controller('event-detections')
 export class EventDetectionsController {
@@ -57,5 +57,11 @@ export class EventDetectionsController {
       status: 'ok',
       timestamp: new Date().toISOString(),
     };
+  }
+
+  @Post('trigger')
+  async triggerNow(): Promise<unknown> {
+    // Trigger the fetch immediately for testing purposes
+    return this.service.fetchEventsAndHabits();
   }
 }

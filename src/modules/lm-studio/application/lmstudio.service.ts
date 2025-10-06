@@ -1,7 +1,7 @@
 // src/modules/event-detections/application/lmstudio.service.ts
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
-import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
+import type { FetchResult } from '@modules/event-detections/domain/repositories/event-detections.repo.interface';
 import { AiUserAnalysis } from '../interface/dto/ai-user-analysis.dto';
 
 @Injectable()

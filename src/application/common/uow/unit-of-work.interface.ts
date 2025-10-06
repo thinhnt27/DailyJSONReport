@@ -1,4 +1,4 @@
-import type { IEventDetectionsRepo } from '../../../modules/event-detections/domain/repositories/event-detections.repo.interface';
+import type { IEventDetectionsRepo } from '@/modules/event-detections/domain/repositories/event-detections.repo.interface';
 import type { Prisma } from '@prisma/client';
 
 export interface UowContext {
