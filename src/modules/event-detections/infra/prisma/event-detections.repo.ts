@@ -61,6 +61,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
       'event-detections': events,
       'patient-habits': habits,
     };
+    console.log(`Result`, result);
 
     return result;
   }
