@@ -1173,7 +1173,10 @@ packages:
       '@nestjs/core': ^11.0.0
 
   '@nestjs/schedule@3.0.4':
-    resolution: {integrity: sha512-uFJpuZsXfpvgx2y7/KrIZW9e1L68TLiwRodZ6+Gc8xqQiHSUzAVn+9F4YMxWFlHITZvvkjWziUFgRNCitDcTZQ==}
+    resolution:
+      {
+        integrity: sha512-uFJpuZsXfpvgx2y7/KrIZW9e1L68TLiwRodZ6+Gc8xqQiHSUzAVn+9F4YMxWFlHITZvvkjWziUFgRNCitDcTZQ==,
+      }
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
       '@nestjs/core': ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -1627,7 +1630,10 @@ packages:
       }
 
   '@types/luxon@3.3.8':
-    resolution: {integrity: sha512-jYvz8UMLDgy3a5SkGJne8H7VA7zPV2Lwohjx0V8V31+SqAjNmurWMkk9cQhfvlcnXWudBpK9xPM1n4rljOcHYQ==}
+    resolution:
+      {
+        integrity: sha512-jYvz8UMLDgy3a5SkGJne8H7VA7zPV2Lwohjx0V8V31+SqAjNmurWMkk9cQhfvlcnXWudBpK9xPM1n4rljOcHYQ==,
+      }
 
   '@types/methods@1.1.4':
     resolution:
@@ -2690,7 +2696,10 @@ packages:
       }
 
   cron@2.4.3:
-    resolution: {integrity: sha512-YBvExkQYF7w0PxyeFLRyr817YVDhGxaCi5/uRRMqa4aWD3IFKRd+uNbpW1VWMdqQy8PZ7CElc+accXJcauPKzQ==}
+    resolution:
+      {
+        integrity: sha512-YBvExkQYF7w0PxyeFLRyr817YVDhGxaCi5/uRRMqa4aWD3IFKRd+uNbpW1VWMdqQy8PZ7CElc+accXJcauPKzQ==,
+      }
 
   cross-spawn@7.0.6:
     resolution:
@@ -4226,8 +4235,11 @@ packages:
       }
 
   luxon@3.3.0:
-    resolution: {integrity: sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==}
-    engines: {node: '>=12'}
+    resolution:
+      {
+        integrity: sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==,
+      }
+    engines: { node: '>=12' }
 
   magic-string@0.30.17:
     resolution:
@@ -5699,7 +5711,10 @@ packages:
       }
 
   uuid@9.0.1:
-    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    resolution:
+      {
+        integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==,
+      }
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
