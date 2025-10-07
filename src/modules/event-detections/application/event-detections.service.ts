@@ -70,6 +70,7 @@ export class EventDetectionsService {
           this.logger.debug(
             `→ Sending group ${b + 1}/${sendBatches.length} (size=${eventBatch.length}) for user ${String(userId)}`,
           );
+          this.logger.debug(`Sample event: ${JSON.stringify(userRawData)}`);
 
           const analyzed: AiUserAnalysis =
             await this.lmStudio.analyzeEventData(userRawData);
@@ -81,6 +82,9 @@ export class EventDetectionsService {
           );
         }
       }
+      this.logger.debug(
+        `Processed user_id=${String(userId)} with ${userResults.length} results and data from userResults (segments): ${JSON.stringify(userResults)}`,
+      );
 
       // Gộp các đoạn cùng user → 1 doc/ngày/người
       const folded: AiUserAnalysisV2 = foldUserAnalysesToV2(userResults);

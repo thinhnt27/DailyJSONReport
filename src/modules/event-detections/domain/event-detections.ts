@@ -141,3 +141,53 @@ export async function fetchEventsAndPatientHabits(
 
   return returnResult;
 }
+
+export async function fetchLatestEventsAndPatientHabits(
+  repo: IEventDetectionsRepo,
+): Promise<FetchResult> {
+  const result = await repo.fetchLatestEventsAndPatientHabits();
+
+  // deep copy để có thể strip field giống hàm kia
+  const returnResult: FetchResult = JSON.parse(
+    JSON.stringify(result),
+  ) as FetchResult;
+
+  // // strip user_id nếu client cung cấp eventFields mà không có 'user_id'
+  // if (options?.eventFields && !options.eventFields.includes('user_id')) {
+  //   const events = returnResult['event-detections'];
+  //   if (Array.isArray(events)) {
+  //     for (const e of events) {
+  //       if (e && typeof e === 'object' && 'user_id' in e)
+  //         delete (e as any).user_id;
+  //     }
+  //   }
+  // }
+
+  // // strip habit_id nếu client cung cấp habitFields mà không có 'habit_id'
+  // if (options?.habitFields && !options.habitFields.includes('habit_id')) {
+  //   const habits = returnResult['patient-habits'];
+  //   if (Array.isArray(habits)) {
+  //     for (const h of habits) {
+  //       if (h && typeof h === 'object' && 'habit_id' in h)
+  //         delete (h as any).habit_id;
+  //     }
+  //   }
+  // }
+
+  // if (options?.saveToFile) {
+  //   try {
+  //     const dataDir = path.resolve(process.cwd(), 'data');
+  //     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+  //     const fname =
+  //       options.filename ||
+  //       `latest_events_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  //     const full = path.join(dataDir, fname);
+  //     fs.writeFileSync(full, JSON.stringify(result, null, 2), 'utf8');
+  //     logger.log(`Saved latest events to ${full}`);
+  //   } catch (err) {
+  //     logger.error('Failed to save latest events file', err);
+  //   }
+  // }
+
+  return returnResult;
+}

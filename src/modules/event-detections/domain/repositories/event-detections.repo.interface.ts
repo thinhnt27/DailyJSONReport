@@ -14,6 +14,12 @@ export interface IEventDetectionsRepo {
     eventFields?: string[];
     habitFields?: string[];
   }): Promise<FetchResult>;
+  fetchLatestEventsAndPatientHabits(params?: {
+    limit?: number; // mặc định 100
+    eventFields?: string[]; // optional select
+    habitFields?: string[]; // optional select
+    ascending?: boolean; // true → trả theo thời gian tăng dần
+  }): Promise<FetchResult>;
 }
 
 // token to use for DI so implementations can be swapped
