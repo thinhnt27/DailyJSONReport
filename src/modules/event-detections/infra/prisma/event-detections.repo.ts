@@ -66,62 +66,32 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
     return result;
   }
 
-  async fetchLatestEventsAndPatientHabits(params?: {
-    limit?: number; // mặc định 100
-    eventFields?: string[]; // select các field của event (optional)
-    habitFields?: string[]; // select các field của habit (optional)
-    ascending?: boolean; // nếu true, trả events theo thời gian tăng dần (mặc định false = mới -> cũ)
-  }): Promise<FetchResult> {
-    const limit =
-      params?.limit && params.limit > 0 ? Math.min(params.limit, 1000) : 100;
-
-    const eventSelect = params?.eventFields
-      ? (Object.fromEntries(params.eventFields.map((f) => [f, true])) as Record<
-          string,
-          true
-        >)
-      : undefined;
-
-    // Lấy mới nhất: orderBy detected_at desc, chỉ lấy record có detected_at != null
+  // ... trong PrismaEventDetectionsRepo
+  async fetchLatestEventsAndPatientHabits(): Promise<FetchResult> {
     const events: Array<Record<string, unknown>> =
       await this.prisma.event_detections.findMany({
-        where: { detected_at: { not: null } },
-        orderBy: [
-          { detected_at: 'desc' },
-          // gợi ý: thêm second key để thứ tự ổn định khi phân trang
-          { id: 'desc' } as any,
-        ],
-        take: limit,
-        select: eventSelect,
+        orderBy: { detected_at: 'desc' }, // ✅ bỏ 'id'
+        take: 100,
+        // select: ...  // nếu muốn chọn field cụ thể thì thêm sau
       });
-
-    // Nếu bạn muốn trả về theo thứ tự tăng dần (cũ -> mới) cho tiện hiển thị/pipeline
-    const finalEvents =
-      params?.ascending === true ? [...events].reverse() : events;
 
     const userIds = Array.from(
       new Set(
-        finalEvents
-          .map((e) => (e as Record<string, unknown>).user_id as string)
-          .filter(Boolean),
+        events
+          .map((e) => (e as { user_id?: string }).user_id)
+          .filter(Boolean) as string[],
       ),
     );
 
-    const habitSelect = params?.habitFields
-      ? (Object.fromEntries(params.habitFields.map((f) => [f, true])) as Record<
-          string,
-          true
-        >)
-      : undefined;
-
-    const habits: Array<Record<string, unknown>> =
-      await this.prisma.patient_habits.findMany({
-        where: userIds.length ? { user_id: { in: userIds } } : undefined,
-        select: habitSelect,
-      });
+    const habits: Array<Record<string, unknown>> = userIds.length
+      ? await this.prisma.patient_habits.findMany({
+          where: { user_id: { in: userIds } },
+          // select: ... // tùy bạn
+        })
+      : [];
 
     return {
-      'event-detections': finalEvents,
+      'event-detections': events,
       'patient-habits': habits,
     };
   }

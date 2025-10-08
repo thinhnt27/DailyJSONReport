@@ -1,6 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { FetchEventsOptions } from '../domain/event-detections';
-import { fetchEventsAndPatientHabits } from '../domain/event-detections';
+import {
+  fetchEventsAndPatientHabits,
+  fetchLatestEventsAndPatientHabits,
+} from '../domain/event-detections';
 import type {
   FetchResult,
   IEventDetectionsRepo,
@@ -37,10 +40,11 @@ export class EventDetectionsService {
     endDateIso?: string,
     options?: FetchEventsOptions,
   ): Promise<AiUserAnalysisV2[]> {
-    const raw = await this.fetchEventsAndHabits(endDateIso, options);
+    const raw = await fetchLatestEventsAndPatientHabits(this.repo, this.logger);
 
     const events = raw['event-detections'] ?? [];
     const habits = raw['patient-habits'] ?? [];
+    this.logger.debug(`Fetched event data: ${events.length} items`);
 
     const userIds = Array.from(
       new Set(habits.map((e) => e.user_id).filter(Boolean)),
@@ -51,10 +55,6 @@ export class EventDetectionsService {
     for (const userId of userIds) {
       const userEvents = events.filter((e) => e.user_id === userId);
       const userHabits = habits.filter((h) => h.user_id === userId);
-
-      this.logger.debug(
-        `Processing user_id=${String(userId)} with ${userEvents.length} events and ${userHabits.length} habits`,
-      );
 
       const sendBatches = buildSendBatchesByStatusAndGap(userEvents);
       const userResults: AiUserAnalysis[] = [];
@@ -70,7 +70,20 @@ export class EventDetectionsService {
           this.logger.debug(
             `→ Sending group ${b + 1}/${sendBatches.length} (size=${eventBatch.length}) for user ${String(userId)}`,
           );
-          this.logger.debug(`Sample event: ${JSON.stringify(userRawData)}`);
+          type EventWithDesc = { event_description?: string | null };
+
+          const events =
+            (userRawData['event-detections'] as EventWithDesc[] | undefined) ??
+            [];
+
+          const descriptions: string[] = events
+            .map((e) => e.event_description)
+            .filter((s): s is string => typeof s === 'string' && s.length > 0);
+
+          this.logger.debug(
+            `Event descriptions for user ${String(userId)} (${descriptions.length} events):\n` +
+              descriptions.join('\n'),
+          );
 
           const analyzed: AiUserAnalysis =
             await this.lmStudio.analyzeEventData(userRawData);
