@@ -11,6 +11,7 @@ describe('EventDetectionsService', () => {
 
   const mockRepository: IEventDetectionsRepo = {
     fetchEventsAndPatientHabits: jest.fn(),
+    fetchLatestEventsAndPatientHabits: jest.fn(),
   };
 
   beforeEach(async () => {

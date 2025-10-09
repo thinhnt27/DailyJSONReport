@@ -144,7 +144,6 @@ export async function fetchEventsAndPatientHabits(
 
 export async function fetchLatestEventsAndPatientHabits(
   repo: IEventDetectionsRepo,
-  logger: SimpleLogger = console,
 ): Promise<FetchResult> {
   const result = await repo.fetchLatestEventsAndPatientHabits();
 

@@ -21,7 +21,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
     eventFields?: string[];
     habitFields?: string[];
   }): Promise<FetchResult> {
-    const { start, end, limit, offset, eventFields, habitFields } = params;
+    const { start, end, limit, offset } = params;
     const prisma = this.prisma;
 
     // Build where clause conditionally
@@ -30,15 +30,25 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
       whereClause.detected_at = { gte: start, lt: end };
     }
 
+    // Select only the fields we care about from events
     const events: Array<Record<string, any>> =
       await prisma.event_detections.findMany({
         where: whereClause,
         ...(limit ? { take: limit } : {}),
         skip: offset,
         orderBy: { detected_at: 'asc' },
-        select: eventFields
-          ? Object.fromEntries(eventFields.map((f: string) => [f, true]))
-          : undefined,
+        select: {
+          event_id: true,
+          notes: true,
+          user_id: true,
+          event_type: true,
+          event_description: true,
+          confidence_score: true,
+          verified_by: true,
+          confirm_status: true,
+          status: true,
+          detected_at: true,
+        },
       });
 
     const userIds = Array.from(
@@ -49,30 +59,155 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
       ),
     );
 
-    const habits: Array<Record<string, any>> =
-      await prisma.patient_habits.findMany({
-        where: { user_id: { in: userIds } },
-        select: habitFields
-          ? Object.fromEntries(habitFields.map((f: string) => [f, true]))
-          : undefined,
-      });
+    // fetch habits for the users we found in events (only requested fields)
+    const habits: Array<Record<string, any>> = userIds.length
+      ? await prisma.patient_habits.findMany({
+          where: { user_id: { in: userIds } },
+          select: {
+            habit_id: true,
+            description: true,
+            sleep_start: true,
+            sleep_end: true,
+            supplement_id: true,
+            user_id: true,
+          },
+        })
+      : [];
+
+    // Fetch supplements and medical records related to the userIds so we can
+    // build a consolidated patient_profile per user.
+    // Collect supplement_ids from habits to limit downstream queries
+    const supplementIds = Array.from(
+      new Set(
+        habits.map((h) => (h.supplement_id as string) || '').filter(Boolean),
+      ),
+    );
+
+    const supplements: Array<Record<string, unknown>> = supplementIds.length
+      ? await prisma.patient_supplements.findMany({
+          where: { id: { in: supplementIds } },
+          select: {
+            id: true,
+            name: true,
+            weight_kg: true,
+            height_cm: true,
+            customer_id: true,
+          },
+        })
+      : [];
+
+    const medicalRecords: Array<Record<string, unknown>> = supplementIds.length
+      ? await prisma.patient_medical_records.findMany({
+          where: { supplement_id: { in: supplementIds } },
+          select: { id: true, supplement_id: true, history: true },
+        })
+      : [];
+
+    // Build patient profile grouped by user_id (customer_id in supplements)
+    const profileByUser = new Map<string, Record<string, unknown>>();
+
+    for (const h of habits) {
+      const userId = h.user_id as string;
+      if (!userId) continue;
+      if (!profileByUser.has(userId))
+        profileByUser.set(userId, { user_id: userId });
+      const p = profileByUser.get(userId)!;
+      if (!p['patient_habits']) p['patient_habits'] = [];
+      (p['patient_habits'] as Array<Record<string, unknown>>).push(h);
+    }
+
+    for (const s of supplements) {
+      const userId = s.customer_id as string;
+      if (!userId) continue;
+      if (!profileByUser.has(userId))
+        profileByUser.set(userId, { user_id: userId });
+      const p = profileByUser.get(userId)!;
+      if (!p['patient_supplements']) p['patient_supplements'] = [];
+      (p['patient_supplements'] as Array<Record<string, unknown>>).push(
+        s as Record<string, unknown>,
+      );
+    }
+
+    for (const mr of medicalRecords) {
+      // medicalRecords point to supplement_id; find supplement to map to user
+      const suppId = mr.supplement_id as string;
+      const supp = supplements.find((x) => x.id === suppId);
+      const userId = supp?.customer_id as string | undefined;
+      if (!userId) continue;
+      if (!profileByUser.has(userId))
+        profileByUser.set(userId, { user_id: userId });
+      const p = profileByUser.get(userId)!;
+      if (!p['patient_medical_records']) p['patient_medical_records'] = [];
+      (p['patient_medical_records'] as Array<Record<string, unknown>>).push(mr);
+    }
+
+    // Map events to only requested fields
+    const mappedEvents = events.map((e) => ({
+      event_id: e.event_id,
+      notes: e.notes,
+      user_id: e.user_id,
+      event_type: e.event_type,
+      event_description: e.event_description,
+      confidence_score: e.confidence_score,
+      verified_by: e.verified_by,
+      confirm_status: e.confirm_status,
+      status: e.status,
+      detected_at: e.detected_at,
+    }));
+
+    // Build a supplement object (single object for the first user, assuming single user context)
+    let supplement: Record<string, unknown> | undefined;
+
+    for (const h of habits) {
+      const userId = h.user_id as string;
+      if (!userId || supplement) continue; // take first habit
+
+      const supId = h.supplement_id as string | undefined;
+      const sup = supplements.find((s) => (s.id as string) === supId);
+      const med = medicalRecords.filter(
+        (mr) => (mr.supplement_id as string) === supId,
+      );
+
+      supplement = {
+        description: h.description,
+        sleep_start: h.sleep_start,
+        sleep_end: h.sleep_end,
+        supplement_id: supId,
+        user_id: userId,
+        supplement_name: sup?.name,
+        weight_kg: sup?.weight_kg,
+        height_cm: sup?.height_cm,
+        medical_history: med.map((m) => m.history),
+      };
+    }
 
     const result: FetchResult = {
-      'event-detections': events,
-      'patient-habits': habits,
+      'event-detections': mappedEvents,
+      supplement,
     };
-    console.log(`Result`, result);
 
     return result;
   }
 
   // ... trong PrismaEventDetectionsRepo
   async fetchLatestEventsAndPatientHabits(): Promise<FetchResult> {
+    // fetch latest events (limited)
     const events: Array<Record<string, unknown>> =
       await this.prisma.event_detections.findMany({
-        orderBy: { detected_at: 'desc' }, // ✅ bỏ 'id'
+        orderBy: { detected_at: 'desc' },
         take: 100,
-        // select: ...  // nếu muốn chọn field cụ thể thì thêm sau
+        select: {
+          event_id: true,
+          notes: true,
+          user_id: true,
+          event_type: true,
+          event_description: true,
+          confidence_score: true,
+          verified_by: true,
+          confirm_status: true,
+          status: true,
+          detected_at: true,
+        },
       });
 
     const userIds = Array.from(
@@ -86,13 +221,76 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
     const habits: Array<Record<string, unknown>> = userIds.length
       ? await this.prisma.patient_habits.findMany({
           where: { user_id: { in: userIds } },
-          // select: ... // tùy bạn
+          select: {
+            habit_id: true,
+            description: true,
+            sleep_start: true,
+            sleep_end: true,
+            supplement_id: true,
+            user_id: true,
+          },
         })
       : [];
+
+    const supplementIds = Array.from(
+      new Set(
+        habits.map((h) => (h.supplement_id as string) || '').filter(Boolean),
+      ),
+    );
+
+    const supplements: Array<Record<string, unknown>> = supplementIds.length
+      ? await this.prisma.patient_supplements.findMany({
+          where: { id: { in: supplementIds } },
+          select: {
+            id: true,
+            name: true,
+            weight_kg: true,
+            height_cm: true,
+            customer_id: true,
+          },
+        })
+      : [];
+
+    const medicalRecords: Array<Record<string, unknown>> = supplementIds.length
+      ? await this.prisma.patient_medical_records.findMany({
+          where: { supplement_id: { in: supplementIds } },
+          select: { id: true, supplement_id: true, history: true },
+        })
+      : [];
+
+    // Build supplement object (single object for the first user)
+    let supplement: Record<string, unknown> | undefined;
+
+    for (const h of habits) {
+      const userId = h.user_id as string;
+      if (!userId || supplement) continue; // take first habit
+
+      const supId = h.supplement_id as string | undefined;
+      const sup = supplements.find((s) => (s.id as string) === supId);
+      const med = medicalRecords.filter(
+        (mr) => (mr.supplement_id as string) === supId,
+      );
+
+      supplement = {
+        description: h.description,
+        sleep_start: h.sleep_start,
+        sleep_end: h.sleep_end,
+        supplement_id: supId,
+        user_id: userId,
+        supplement_name: sup?.name,
+        weight_kg: sup?.weight_kg,
+        height_cm: sup?.height_cm,
+        medical_history: med.map((m) => m.history),
+      };
+    }
 
     return {
       'event-detections': events,
       'patient-habits': habits,
+      patient_profile: supplement
+        ? [{ user_id: supplement.user_id as string }]
+        : [],
+      supplement,
     };
   }
 }

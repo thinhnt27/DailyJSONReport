@@ -2,7 +2,6 @@ import { Controller, Get, Post, Query } from '@nestjs/common';
 import { EventDetectionsService } from '../application/event-detections.service';
 import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
 import { FetchEventsQueryDto } from './dto/fetch-events.dto';
-import { AiUserAnalysisV2 } from '@/modules/lm-studio/interface/dto/ai-user-analysis.v2.dto';
 
 @Controller('event-detections')
 export class EventDetectionsController {
@@ -31,24 +30,11 @@ export class EventDetectionsController {
   }
 
   @Get('analyze')
-  async analyze(
-    @Query() query: FetchEventsQueryDto,
-  ): Promise<AiUserAnalysisV2[]> {
-    const limit = query.limit ? Number(query.limit) : undefined;
-    const page = query.page ? Number(query.page) : undefined;
-    const fetchAll =
-      query.fetchAll === true ||
-      (query.fetchAll as unknown as string) === 'true';
-
-    return await this.service.fetchEventsAndAnalyze(query.endDate, {
-      limit,
-      page,
-      eventFields: query.eventFields,
-      habitFields: query.habitFields,
-      saveToFile: query.saveToFile,
-      filename: query.filename,
-      fetchAll,
-    });
+  async analyze(): Promise<{
+    'event-detections'?: Array<Record<string, unknown>>;
+    supplement?: Record<string, unknown>;
+  }> {
+    return await this.service.fetchEventsAndAnalyze();
   }
 
   @Get('health')
@@ -60,8 +46,11 @@ export class EventDetectionsController {
   }
 
   @Post('trigger')
-  async triggerNow(): Promise<unknown> {
-    // Trigger the fetch immediately for testing purposes
-    return this.service.fetchEventsAndHabits();
+  async triggerNow(): Promise<{
+    'event-detections'?: Array<Record<string, unknown>>;
+    supplement?: Record<string, unknown>;
+  }> {
+    // Trigger analysis immediately for testing purposes (matches cron)
+    return this.service.fetchEventsAndAnalyze();
   }
 }

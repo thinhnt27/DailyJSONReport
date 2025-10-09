@@ -20,9 +20,12 @@ export class EventDetectionsScheduler {
   async handleDailyAnalysis() {
     this.logger.log('Starting daily event detection job');
     try {
-      const analyzed = await this.svc.fetchEventsAndAnalyze();
+      const result = await this.svc.fetchEventsAndAnalyze();
+      const count = Array.isArray(result?.['event-detections'])
+        ? result['event-detections'].length
+        : 0;
       this.logger.log(
-        `Daily event detection completed; analyzed ${analyzed?.length ?? 0} items`,
+        `Daily event detection completed; processed ${count} events`,
       );
     } catch (err) {
       this.logger.error('Daily event detection failed', err as Error | string);

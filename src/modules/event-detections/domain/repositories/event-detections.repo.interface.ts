@@ -1,6 +1,13 @@
 export interface FetchResult {
   'event-detections'?: Array<Record<string, unknown>>;
   'patient-habits'?: Array<Record<string, unknown>>;
+  patient_profile?: Array<Record<string, unknown>>;
+  // supplement can be an array, a map to array, a map to object, or a single object
+  supplement?:
+    | Array<Record<string, unknown>>
+    | Record<string, Array<Record<string, unknown>>>
+    | Record<string, Record<string, unknown>>
+    | Record<string, unknown>;
   [key: string]: unknown;
 }
 
