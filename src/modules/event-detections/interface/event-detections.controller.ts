@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { EventDetectionsService } from '../application/event-detections.service';
 import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
 import { FetchEventsQueryDto } from './dto/fetch-events.dto';
+// import { AiUserAnalysis } from '@/modules/lm-studio/interface/dto/ai-user-analysis.dto';
+import { AiUserAnalysisV2 } from '@/modules/lm-studio/interface/dto/ai-user-analysis.v2.dto';
 
 @Controller('event-detections')
 export class EventDetectionsController {
@@ -30,7 +32,7 @@ export class EventDetectionsController {
   }
 
   @Get('analyze')
-  async analyze(): Promise<Array<Record<string, unknown>>> {
+  async analyze(): Promise<AiUserAnalysisV2[]> {
     return await this.service.fetchEventsAndAnalyze();
   }
 
@@ -42,9 +44,9 @@ export class EventDetectionsController {
     };
   }
 
-  @Post('trigger')
-  async triggerNow(): Promise<Array<Record<string, unknown>>> {
-    // Trigger analysis immediately for testing purposes (matches cron)
-    return this.service.fetchEventsAndAnalyze();
-  }
+  // @Post('trigger')
+  // async triggerNow(): Promise<Array<Record<string, unknown>>> {
+  //   // Trigger analysis immediately for testing purposes (matches cron)
+  //   // return this.service.fetchEventsAndAnalyze();
+  // }
 }

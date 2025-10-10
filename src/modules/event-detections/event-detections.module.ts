@@ -1,7 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
-import { EventDetectionsScheduler } from './application/event-detections.scheduler';
+// import { EventDetectionsScheduler } from './application/event-detections.scheduler';
 import { EventDetectionsService } from './application/event-detections.service';
 import { LmStudioService } from '@modules/lm-studio/application/lmstudio.service';
 import { EVENT_DETECTIONS_REPO } from './domain/repositories/event-detections.repo.interface';
@@ -21,7 +21,7 @@ import { EventDetectionsController } from './interface/event-detections.controll
       inject: [PrismaService],
     },
     EventDetectionsService,
-    EventDetectionsScheduler,
+    // EventDetectionsScheduler,
     LmStudioService,
   ],
   exports: [EventDetectionsService, EVENT_DETECTIONS_REPO, LmStudioService],

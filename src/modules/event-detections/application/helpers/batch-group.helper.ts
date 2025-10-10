@@ -1,73 +1,228 @@
-// src/modules/event-detections/application/helpers/batch-group.helper.ts
-import { Decimal } from '@prisma/client/runtime/library';
-type EventStatus = 'normal' | 'warning' | 'danger';
+// src/modules/event-detections/application/helpers/users-batch-grouper.ts
 
-type MinimalShape = {
+export type StatusLower = 'normal' | 'warning' | 'danger';
+
+export type InputEvent = {
+  event_id?: string | null;
+  notes?: string | null;
   user_id?: string | null;
-  status?: EventStatus | null;
+  event_type?: string | null;
+  event_description?: string | null;
+  confidence_score?: string | number | { toNumber?: () => number } | null;
+  verified_by?: string | null;
+  confirm_status?: boolean | null;
+  status?: string | null; // có thể 'Normal'/'normal'/null
   created_at?: string | Date | null;
   detected_at?: string | Date | null;
-  event_description?: string | null;
-  confidence_score?: Decimal | number | null;
-  validated_by?: string | null;
-  // thêm field...
+} & Record<string, unknown>;
+
+export type InputUser = {
+  user_id: string;
+  'event-detections': InputEvent[];
+  supplement: Record<string, unknown> | null;
 };
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
-const MAX_SEND = 20;
+export type OutputBatch = {
+  user_id: string;
+  'event-detections': InputEvent[]; // giữ nguyên shape event (chỉ normalize giá trị)
+  supplement: Record<string, unknown> | null;
+};
 
-function getTimeMs(raw?: string | Date | null): number {
+export type GroupOptions = {
+  /** Status được giữ lại để gom nhóm (lowercase). Mặc định: ['warning','danger'] */
+  includeStatuses?: string[];
+  /** Có lọc bỏ 'normal' không? Mặc định true */
+  excludeNormal?: boolean;
+  /** Khoảng kề nhau để gộp (ms). Mặc định 5 phút */
+  timeGapMs?: number;
+  /** Số record tối đa mỗi batch. Mặc định 20 */
+  maxBatchSize?: number;
+  /**
+   * Nếu đặt, sẽ GÁN lại status của mọi event trong batch về giá trị này
+   * (vd 'danger'), chỉ ảnh hưởng dữ liệu trả ra, không đổi dữ liệu gốc.
+   */
+  forceStatusOutput?: string | null;
+};
+
+const DEFAULTS: Required<
+  Pick<GroupOptions, 'excludeNormal' | 'timeGapMs' | 'maxBatchSize'>
+> = {
+  excludeNormal: true,
+  timeGapMs: 5 * 60 * 1000, // 5 phút
+  maxBatchSize: 20,
+};
+
+function toLower(s?: string | null): string {
+  return (s ?? '').toLowerCase();
+}
+
+function parseDateMs(raw?: string | Date | null): number {
   const d = typeof raw === 'string' ? new Date(raw) : (raw ?? null);
   return d instanceof Date && !Number.isNaN(d.getTime())
     ? d.getTime()
     : Number.NaN;
 }
 
-function isNonNormal(s?: string | null): boolean {
-  return (s ?? '').toLowerCase() !== 'normal' && (s ?? '') !== '';
+function isDecimalLike(v: unknown): v is { toNumber: () => number } {
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    'toNumber' in (v as Record<string, unknown>) &&
+    typeof (v as { toNumber?: unknown }).toNumber === 'function'
+  );
 }
 
-// Generic T: chỉ cần thỏa MinimalShape là được; trả về cùng T[][]
-export function buildSendBatchesByStatusAndGap<T extends MinimalShape>(
-  events: T[],
-): T[][] {
-  // 1) bỏ Normal + có thời gian hợp lệ (ưu tiên created_at, fallback detected_at)
-  const filtered = events
-    .map((e) => {
-      const t = getTimeMs(e.created_at ?? e.detected_at);
-      return { e, t };
-    })
-    .filter((x) => isNonNormal(x.e.status) && Number.isFinite(x.t))
-    .sort((a, b) => a.t - b.t);
+function toNumberOrNull(v: unknown): number | null {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  if (isDecimalLike(v)) {
+    try {
+      const n = v.toNumber();
+      return typeof n === 'number' && Number.isFinite(n) ? n : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
-  // 2) group theo status
-  const byStatus = new Map<string, Array<{ e: T; t: number }>>();
-  for (const item of filtered) {
-    const key = String(item.e.status ?? 'unknown');
-    (byStatus.get(key) ?? byStatus.set(key, []).get(key)!).push(item);
+/** Chuẩn hoá event: lowercase status, convert confidence_score → number, chuẩn hoá time field */
+function normalizeEvent(
+  e: InputEvent,
+): InputEvent & { _ts: number; _status: string } {
+  const normalizedStatus = toLower(e.status);
+  const ts = parseDateMs(e.detected_at ?? e.created_at);
+
+  // Không thay đổi shape ban đầu; chỉ chuẩn hoá giá trị phổ biến
+  const confidenceNumber = toNumberOrNull(e.confidence_score);
+
+  return {
+    ...e,
+    status: normalizedStatus || null, // vẫn giữ field status nhưng lowercase
+    confidence_score: confidenceNumber ?? e.confidence_score, // nếu parse được thì thay
+    _ts: ts, // timestamp phục vụ sort/group
+    _status: normalizedStatus, // status lowercase để group
+  };
+}
+
+/** Chia nhỏ mảng thành các chunk size tối đa */
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+/** Gom theo status + khoảng cách time; sau đó cắt ≤ maxBatchSize */
+function groupOneUser(user: InputUser, opt?: GroupOptions): OutputBatch[] {
+  const includeStatuses = opt?.includeStatuses?.map(toLower);
+  const excludeNormal = opt?.excludeNormal ?? DEFAULTS.excludeNormal;
+  const timeGapMs = opt?.timeGapMs ?? DEFAULTS.timeGapMs;
+  const maxBatchSize = opt?.maxBatchSize ?? DEFAULTS.maxBatchSize;
+  const forceStatus = opt?.forceStatusOutput
+    ? toLower(opt.forceStatusOutput)
+    : null;
+
+  // 1) Normalize + sort theo detected_at (fallback created_at)
+  const events = (user['event-detections'] ?? []).map(normalizeEvent);
+  events.sort((a, b) => a._ts - b._ts);
+
+  // 2) Lọc theo status
+  const filtered = events
+    .filter((e) => {
+      const st = e._status; // lowercase
+      if (includeStatuses && includeStatuses.length > 0) {
+        return includeStatuses.includes(st);
+      }
+      if (excludeNormal) return st !== 'normal' && st !== '';
+      return true;
+    })
+    .filter((e) => Number.isFinite(e._ts)); // bỏ event không có timestamp hợp lệ
+
+  // 3) Group theo status → rồi group “kề nhau ≤ timeGapMs”
+  const byStatus = new Map<
+    string,
+    (InputEvent & { _ts: number; _status: string })[]
+  >();
+  for (const ev of filtered) {
+    const key = ev._status || 'unknown';
+    (byStatus.get(key) ?? byStatus.set(key, []).get(key)!).push(ev);
   }
 
-  // 3) trong mỗi status, group theo khoảng cách ≤ 5 phút, rồi cắt ≤ 20 record
-  const out: T[][] = [];
+  const batches: OutputBatch[] = [];
 
   for (const [, list] of byStatus) {
     if (list.length === 0) continue;
 
-    let current: T[] = [list[0].e];
+    let current: InputEvent[] = [list[0]];
     for (let i = 1; i < list.length; i++) {
-      const prev = list[i - 1].t;
-      const cur = list[i].t;
-      if (cur - prev <= FIVE_MINUTES_MS) {
-        current.push(list[i].e);
+      const prev = list[i - 1]._ts;
+      const cur = list[i]._ts;
+      if (cur - prev <= timeGapMs) {
+        current.push(list[i]);
       } else {
-        while (current.length > MAX_SEND) out.push(current.splice(0, MAX_SEND));
-        out.push(current);
-        current = [list[i].e];
+        // push nhóm cũ (cắt nhỏ nếu cần)
+        for (const part of chunk(current, maxBatchSize)) {
+          batches.push({
+            user_id: user.user_id,
+            'event-detections': forceStatus
+              ? part.map((ev) => ({ ...ev, status: forceStatus }))
+              : part,
+            supplement: user.supplement ?? null,
+          });
+        }
+        current = [list[i]];
       }
     }
-    while (current.length > MAX_SEND) out.push(current.splice(0, MAX_SEND));
-    out.push(current);
+    // push nhóm cuối
+    for (const part of chunk(current, maxBatchSize)) {
+      batches.push({
+        user_id: user.user_id,
+        'event-detections': forceStatus
+          ? part.map((ev) => ({ ...ev, status: forceStatus }))
+          : part,
+        supplement: user.supplement ?? null,
+      });
+    }
   }
 
-  return out;
+  // 4) Loại bỏ các field nội bộ (_ts, _status) khỏi output
+  for (const b of batches) {
+    b['event-detections'] = b['event-detections'].map((ev) => {
+      const { _ts, _status, ...rest } = ev as any;
+      return rest;
+    });
+  }
+
+  return batches;
+}
+
+/**
+ * Public API: nhận mảng users (như JSON bạn đưa), trả về danh sách batch đã chia:
+ *   [{ user_id, "event-detections": [...≤20], supplement }, ...]
+ */
+export class UsersBatchGrouper {
+  static group(users: InputUser[], options?: GroupOptions): OutputBatch[] {
+    const out: OutputBatch[] = [];
+    for (const u of users) {
+      const grouped = groupOneUser(u, options);
+      out.push(...grouped);
+    }
+    // cuối cùng sort toàn cục theo thời gian batch đầu (nếu muốn)
+    out.sort((a, b) => {
+      const ta =
+        a['event-detections']?.[0]?.detected_at ??
+        a['event-detections']?.[0]?.created_at;
+      const tb =
+        b['event-detections']?.[0]?.detected_at ??
+        b['event-detections']?.[0]?.created_at;
+      return parseDateMs(ta as any) - parseDateMs(tb as any);
+    });
+    console.log(
+      `UsersBatchGrouper.group: total users=${users.length}, batches=${out.length}`,
+    );
+    return out;
+  }
 }

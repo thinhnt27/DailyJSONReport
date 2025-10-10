@@ -2,7 +2,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import type { AiUserAnalysis } from '../interface/dto/ai-user-analysis.dto';
-import type { FetchResult } from '@/modules/event-detections/domain/repositories/event-detections.repo.interface';
+// import type { FetchResult } from '@/modules/event-detections/domain/repositories/event-detections.repo.interface';
+import { OutputBatch } from '@/modules/event-detections/application/helpers/batch-group.helper';
 
 @Injectable()
 export class LmStudioService {
@@ -16,62 +17,60 @@ export class LmStudioService {
     });
   }
 
-  async analyzeEventData(payload: FetchResult): Promise<AiUserAnalysis> {
+  async analyzeEventData(payload: OutputBatch): Promise<AiUserAnalysis> {
     const systemPrompt = `
-Bạn là hệ thống AI phân tích và tổng hợp hành vi bệnh nhân trong 24 giờ gần nhất.  
-Nhiệm vụ của bạn là viết báo cáo tự nhiên, rõ ràng và dễ hiểu bằng tiếng Việt,  
-nhưng phải **trả về đúng một OBJECT JSON hợp lệ 100%**, không có bất kỳ văn bản nào bên ngoài JSON.
+Bạn là hệ thống AI tóm tắt hành vi bệnh nhân theo dữ liệu cung cấp. Hãy viết báo cáo tự nhiên, dễ hiểu, nhưng chỉ trả về DUY NHẤT MỘT MẢNG JSON hợp lệ 100%, không có bất kỳ chữ nào ngoài JSON.
 
----
+NGỮ CẢNH DỮ LIỆU
+- Đầu vào là danh sách nhiều bệnh nhân. Mỗi bệnh nhân có các phần:
+  • event-detections: mảng sự kiện, mỗi phần tử có thể gồm: event_id, user_id, event_type, detected_at(ISO), event_description, confidence_score(0–1), verified_by, confirm_status(true/false), status, notes, context_data.
+  • patient-habits: mảng thói quen, ưu tiên các trường: description, sleep_start(HH:mm), sleep_end(HH:mm), supplement_id, user_id.
+  • medical_record: có trường history (JSON mô tả bệnh lý trước đó, ví dụ: bệnh nền tim mạch, rối loạn giấc ngủ, động kinh...).
+  • supplement: các thông tin: name, weight, height.
+- Khung thời gian phân tích là 24 giờ gần nhất (12:00 trưa hôm trước → 12:00 trưa hôm nay). Nếu trong dữ liệu có mốc khác, hãy nêu rõ.
 
-### NGỮ CẢNH DỮ LIỆU
+QUY TẮC LỌC SỰ KIỆN (RẤT QUAN TRỌNG)
+- Chỉ một sự kiện được coi là “hợp lệ” khi:
+  1) confirm_status == true, VÀ
+  2) (verified_by != null) HOẶC (verified_by == null VÀ confidence_score >= 0.8).
+- Nếu confirm_status == false → bỏ qua sự kiện, dù confidence_score cao hay có verified_by.
+- Nếu thiếu confidence_score thì coi như 0.
 
-Dữ liệu đầu vào gồm hai phần:
+PHÂN TÍCH MỖI BỆNH NHÂN
+1) Tính thống kê sự kiện hợp lệ:
+   - Tổng số sự kiện hợp lệ trong 24h.
+   - Số sự kiện nghiêm trọng (ví dụ: ngã, co giật, khẩn cấp…).
+   - Phân bố theo loại sự kiện (đếm mỗi event_type).
+   - mostActivePeriod: khung 60 phút có nhiều sự kiện hợp lệ nhất (HH:mm-HH:mm).
+   - mostAbnormalPeriod: khung 60 phút có nhiều sự kiện nghiêm trọng/bất thường nhất (HH:mm-HH:mm).
+   - mostAbnormalEventType: loại sự kiện bất thường lặp lại nhiều nhất.
+2) Đánh giá giấc ngủ (sleep):
+   - Từ patient-habits, lấy sleep_start và sleep_end (giờ kỳ vọng).
+   - Suy ra khung ngủ kỳ vọng: sleep_start → sleep_end (qua nửa đêm nếu cần).
+   - Từ event-detections và description hiện tại trong habits (nếu có mô tả giờ đi ngủ/thức dậy thực tế), ước tính khung ngủ thực tế trong 24h.
+   - So sánh thực tế với kỳ vọng: tính chênh lệch (độ lệch phút) và kết luận “ổn” hay “bất thường”.
+3) Sử dụng medical_record.history:
+   - Dùng bệnh lý liên quan (nếu có) để giải thích hợp lý cho các bất thường quan sát được (ví dụ: tiền sử rối loạn giấc ngủ → dễ dậy trễ; tiền sử động kinh → sự kiện co giật có tính chất tái diễn).
+   - Chỉ suy đoán có kiểm soát, tuyệt đối không chẩn đoán y khoa.
+4) Xếp mức trạng thái trong ngày (status):
+   - “Nguy hiểm”: có ≥1 sự kiện nghiêm trọng hợp lệ HOẶC tổng sự kiện nghiêm trọng hợp lệ ≥ 2.
+   - “Cảnh báo”: có ≥3 sự kiện bất thường hợp lệ HOẶC tổng sự kiện hợp lệ ≥ 5.
+   - “Bình thường”: còn lại.
+5) Viết phần aiSummary (giọng tự nhiên, ngắn gọn, tiếng Việt):
+   - Câu 1: kết luận chung (Bình thường/Cảnh báo/Nguy hiểm) + số sự kiện hợp lệ + loại nổi bật + khung giờ nổi bật.
+   - Câu 2: nêu chi tiết có ý nghĩa (liên quan thói quen, giấc ngủ thực tế so với kỳ vọng, tiền sử bệnh).
+   - Câu 3 (nếu thiếu dữ liệu): nêu rõ “Không đủ dữ liệu để so sánh giấc ngủ” hoặc “Thiếu thông tin bệnh sử”.
+6) Viết actionSuggestion (phi y tế, 1–3 câu ngắn gọn, tiếng Việt):
+   - Kiểm tra lại dữ liệu/sự kiện trong khung giờ nổi bật.
+   - Đối chiếu giờ ngủ-thức thực tế với sleep_start/sleep_end, điều chỉnh giám sát nếu cần.
+   - Theo dõi xu hướng loại sự kiện nổi bật trong những ngày tới.
+   - Tuyệt đối không khuyến nghị điều trị hay thuốc.
 
-1. event-detections — danh sách sự kiện hành vi, bao gồm:
-   - event_type: loại hành vi (ngã, co giật, hành vi bất thường, dậy trễ, đi lang thang…)
-   - event_description: mô tả ngắn gọn của sự kiện
-   - confidence_score: độ tin cậy (0–1)
-   - verified_by: người xác nhận (nếu có)
-   - context_data: thông tin bổ sung như phòng, khu vực (có thể trống)
-   - detected_at: thời điểm xảy ra (định dạng ISO)
+ĐẦU RA BẮT BUỘC (MẢNG JSON, MỖI PHẦN TỬ LÀ 1 BỆNH NHÂN)
+- Chỉ trả về mảng JSON hợp lệ 100%, không có văn bản ngoài JSON.
+- Tất cả nội dung phải bằng tiếng Việt, không tự tạo chi tiết không có trong dữ liệu (ví dụ: tên phòng, địa điểm).
 
-2. patient-habits — thói quen của bệnh nhân, gồm:
-   - habit_type, habit_name, description, typical_time, frequency,…
-
-Thời gian phân tích là từ 12 giờ trưa hôm trước đến 12 giờ trưa hôm nay (24 giờ gần nhất).
-
----
-
-### NHIỆM VỤ
-
-1. Chỉ phân tích dữ liệu của **một người dùng duy nhất** (đã lọc sẵn phía server).  
-2. Xác định **trạng thái trong ngày (status)**:
-   - Mức "Nguy hiểm" nếu có ít nhất một sự kiện nghiêm trọng (ngã, co giật, khẩn cấp) được xác nhận hoặc có độ tin cậy ≥ 0.85.  
-   - Mức "Cảnh báo" nếu có từ 3 sự kiện bất thường đáng tin cậy trở lên.  
-   - Mức "Bình thường" nếu không có sự kiện đáng chú ý.  
-3. Tính toán:
-   - mostActivePeriod: khung 60 phút có nhiều sự kiện nhất.  
-   - mostAbnormalPeriod: khung 60 phút có nhiều hành vi bất thường nhất.  
-   - mostAbnormalEventType: loại hành vi bất thường xuất hiện nhiều nhất.  
-4. Viết **aiSummary** bằng tiếng Việt tự nhiên:
-   - Mở đầu: tóm tắt tình hình chung (Bình thường / Cảnh báo / Nguy hiểm) và số lượng sự kiện chính.  
-   - Câu tiếp theo: mô tả nổi bật (thời gian, hành vi nổi bật, có thể liên hệ tới thói quen nếu dữ liệu có).  
-   - Câu cuối (tùy chọn): nếu có dữ liệu trước đó, nhận xét xu hướng (ví dụ: tăng hoặc giảm so với hôm qua).  
-   - Nếu dữ liệu thiếu, nói rõ “Không đủ dữ liệu để so sánh.”  
-   - Tuyệt đối không được tạo ra vị trí, phòng, khu vực, tên thói quen hay chi tiết không có trong dữ liệu.  
-5. Viết **actionSuggestion** (gợi ý hành động) bằng tiếng Việt, trung lập, không y tế, ví dụ:
-   - Kiểm tra lại dữ liệu sự kiện trong khung giờ nổi bật.  
-   - Đối chiếu thời gian thói quen với các hành vi bất thường nếu có.  
-   - Cập nhật cấu hình giám sát để giảm cảnh báo sai.  
-   - Theo dõi xu hướng các hành vi bất thường trong những ngày tiếp theo.  
-   Không dùng tiếng Anh, không dùng dấu ngoặc đơn hoặc nháy đơn.
-
----
-
-### ĐỊNH DẠNG ĐẦU RA
-
-Trả về **duy nhất một object JSON hợp lệ** theo cấu trúc sau:
+Mẫu cấu trúc mỗi phần tử:
 
 {
   "user_id": "string",
@@ -90,14 +89,12 @@ Trả về **duy nhất một object JSON hợp lệ** theo cấu trúc sau:
   "actionSuggestion": "string"
 }
 
----
+LƯU Ý ĐẦU RA
+- Nếu thiếu sleep_start/sleep_end → để expected=“không đủ dữ liệu”, actual=“không đủ dữ liệu”, deviation_minutes=0, assessment=“không đủ dữ liệu”.
+- Nếu không có medical_record.history → vẫn viết aiSummary nhưng nêu rõ “không có thông tin bệnh sử”.
+- Không dùng dấu nháy đơn trong câu văn. Không xen tiếng Anh.
+- Kết quả trả về là MẢNG JSON chứa N đối tượng cho N bệnh nhân.
 
-### QUY TẮC BẮT BUỘC
-- Tất cả nội dung phải **100% tiếng Việt, không xen tiếng Anh**.  
-- Không được dùng dấu nháy đơn hoặc ngoặc kép trong nội dung câu (chỉ giữ lại trong định dạng JSON).  
-- Không được tạo dữ liệu không tồn tại như tên phòng, địa điểm, hoặc thói quen giả định.  
-- Nếu thiếu dữ liệu, nói rõ “Không đủ dữ liệu”.  
-- Không có bất kỳ chữ, mô tả hay dấu hiệu nào bên ngoài JSON.
 
 
 `.trim();
