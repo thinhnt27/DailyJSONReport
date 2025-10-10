@@ -20,9 +20,14 @@ export class EventDetectionsScheduler {
   async handleDailyAnalysis() {
     this.logger.log('Starting daily event detection job');
     try {
-      const result = await this.svc.fetchEventsAndAnalyze();
-      const count = Array.isArray(result?.['event-detections'])
-        ? result['event-detections'].length
+      const users = await this.svc.fetchEventsAndAnalyze();
+      // Count total events across all users
+      const count = Array.isArray(users)
+        ? users.reduce((acc, u: Record<string, unknown>) => {
+            const ev = u['event-detections'];
+            if (Array.isArray(ev)) return acc + ev.length;
+            return acc;
+          }, 0)
         : 0;
       this.logger.log(
         `Daily event detection completed; processed ${count} events`,

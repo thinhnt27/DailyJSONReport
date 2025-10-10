@@ -30,10 +30,7 @@ export class EventDetectionsController {
   }
 
   @Get('analyze')
-  async analyze(): Promise<{
-    'event-detections'?: Array<Record<string, unknown>>;
-    supplement?: Record<string, unknown>;
-  }> {
+  async analyze(): Promise<Array<Record<string, unknown>>> {
     return await this.service.fetchEventsAndAnalyze();
   }
 
@@ -46,10 +43,7 @@ export class EventDetectionsController {
   }
 
   @Post('trigger')
-  async triggerNow(): Promise<{
-    'event-detections'?: Array<Record<string, unknown>>;
-    supplement?: Record<string, unknown>;
-  }> {
+  async triggerNow(): Promise<Array<Record<string, unknown>>> {
     // Trigger analysis immediately for testing purposes (matches cron)
     return this.service.fetchEventsAndAnalyze();
   }

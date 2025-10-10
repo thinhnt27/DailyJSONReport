@@ -155,12 +155,15 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
       detected_at: e.detected_at,
     }));
 
-    // Build a supplement object (single object for the first user, assuming single user context)
-    let supplement: Record<string, unknown> | undefined;
+    // Build supplement map keyed by user_id so we return data for all users
+    const supplementByUser: Record<string, Record<string, unknown>> = {};
 
     for (const h of habits) {
       const userId = h.user_id as string;
-      if (!userId || supplement) continue; // take first habit
+      if (!userId) continue;
+
+      // Only set once per user (take the first habit record per user).
+      if (supplementByUser[userId]) continue;
 
       const supId = h.supplement_id as string | undefined;
       const sup = supplements.find((s) => (s.id as string) === supId);
@@ -168,7 +171,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
         (mr) => (mr.supplement_id as string) === supId,
       );
 
-      supplement = {
+      supplementByUser[userId] = {
         description: h.description,
         sleep_start: h.sleep_start,
         sleep_end: h.sleep_end,
@@ -183,7 +186,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
 
     const result: FetchResult = {
       'event-detections': mappedEvents,
-      supplement,
+      supplement: supplementByUser,
     };
 
     return result;
@@ -258,12 +261,12 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
         })
       : [];
 
-    // Build supplement object (single object for the first user)
-    let supplement: Record<string, unknown> | undefined;
-
+    // Build supplement map keyed by user_id
+    const supplementByUser: Record<string, Record<string, unknown>> = {};
     for (const h of habits) {
       const userId = h.user_id as string;
-      if (!userId || supplement) continue; // take first habit
+      if (!userId) continue;
+      if (supplementByUser[userId]) continue;
 
       const supId = h.supplement_id as string | undefined;
       const sup = supplements.find((s) => (s.id as string) === supId);
@@ -271,7 +274,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
         (mr) => (mr.supplement_id as string) === supId,
       );
 
-      supplement = {
+      supplementByUser[userId] = {
         description: h.description,
         sleep_start: h.sleep_start,
         sleep_end: h.sleep_end,
@@ -287,10 +290,10 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
     return {
       'event-detections': events,
       'patient-habits': habits,
-      patient_profile: supplement
-        ? [{ user_id: supplement.user_id as string }]
-        : [],
-      supplement,
+      patient_profile: Object.keys(supplementByUser).map((u) => ({
+        user_id: u,
+      })),
+      supplement: supplementByUser,
     };
   }
 }
