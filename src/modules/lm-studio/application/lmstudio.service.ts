@@ -92,7 +92,7 @@ Nếu có bệnh sử, hãy **liên hệ hợp lý** với các hành vi quan s�
 
 ### 7️ AI Summary (viết tự nhiên, rõ ràng)
 
-- **Câu 1:** Tóm tắt trạng thái trong ngày (Bình thường / Cảnh báo / Nguy hiểm) + lý do rõ ràng.  
+- **Câu 1:** Tóm tắt trạng thái trong ngày + lý do rõ ràng.  
 - **Câu 2:** Mô tả điểm nổi bật (loại hành vi, thời gian, thói quen).  
 - **Câu 3:** So sánh giấc ngủ (nếu có).  
 - **Câu 4 (nếu có):** Liên hệ hợp lý với bệnh sử.  
@@ -101,9 +101,7 @@ Nếu có bệnh sử, hãy **liên hệ hợp lý** với các hành vi quan s�
 ---
 
 ### 8️ Action Suggestion
-- “Theo dõi thói quen ngủ trong 3 ngày tới để xác định xu hướng.”  
-- “Đối chiếu lại với bệnh sử rối loạn tiền đình/tim mạch.”  
-- Nếu thiếu dữ liệu → “Không thể đưa ra đề xuất do thiếu dữ liệu thói quen hoặc thể trạng.”
+- **Mục tiêu:** Đưa ra những lời khuyên dựa trên chuỗi json có sẳn
 
 ---
 
@@ -139,14 +137,6 @@ Mỗi bệnh nhân là 1 object trong mảng JSON:
 - Toàn bộ nội dung phải bằng **tiếng Việt thuần túy, không xen tiếng Anh, không ký tự kỹ thuật.**
 - Diễn đạt tự nhiên, rõ ràng, dễ hiểu theo cách diễn đạt của người Việt.
 - Không được liên hệ với những bệnh lý không có trong 'medical_history'.
-
----
-
-## Kết quả mong đợi
-Với dữ liệu có:
-- 'confirm_status = null' → status = “Bình thường”  
-- 'medical_history' có “rối loạn tiền đình” + 'event_type = fall' → aiSummary sẽ nêu “người bệnh bị ngã có thể do tiền sử rối loạn tiền đình”, và actionSuggestion sẽ nêu “theo dõi triệu chứng choáng, kiểm tra lại tình trạng thăng bằng trong 3 ngày tới.”  
-- 'description' và 'sleep_start/end' lệch nhau > 1 giờ → aiSummary sẽ nêu “giờ ngủ thực tế khác dự kiến khoảng … phút.”
 
 `.trim();
 
