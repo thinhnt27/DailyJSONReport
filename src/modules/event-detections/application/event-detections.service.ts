@@ -65,12 +65,43 @@ export class EventDetectionsService {
     this.logger.log(
       `fetchEventsAndAnalyze: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
     );
-    for (const batch of batchesWarnDanger) {
+    // các user cần chạy
+    const targetIds = new Set([
+      '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
+      '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
+    ]);
+
+    const targetedBatches = batchesWarnDanger.filter(
+      (b) => b.user_id && targetIds.has(b.user_id),
+    );
+
+    this.logger.log(
+      `fetchEventsAndAnalyze: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
+    );
+
+    for (const [idx, batch] of targetedBatches.entries()) {
+      this.logger.debug(
+        `🚀 [Batch ${idx + 1}/${targetedBatches.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
+      );
+
+      // Log payload đẹp, dễ đọc
+      this.logger.debug(
+        `Batch ${idx + 1} payload:\n${JSON.stringify(batch, null, 2)}`,
+      );
+
+      // gọi model
       const out = await this.lmStudio.analyzeEventData(batch);
-      this.logger.debug(`LM Studio response: ${JSON.stringify(out)}`);
+
+      // Log kết quả
+      this.logger.debug(
+        `LM Studio response (batch ${idx + 1}): ${JSON.stringify(out, null, 2)}`,
+      );
+
+      // Gom kết quả
       const arr: AiUserAnalysis[] = Array.isArray(out) ? out : [out];
       if (arr) userResults.push(...arr);
     }
+
     // Gom theo user_id
     const byUser = new Map<string, AiUserAnalysis[]>();
 

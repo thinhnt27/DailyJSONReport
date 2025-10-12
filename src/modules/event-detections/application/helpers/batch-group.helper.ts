@@ -115,6 +115,13 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+/** Strip field nội bộ type-safe */
+type WithInternal = InputEvent & { _ts?: number; _status?: string };
+function stripInternal<E extends WithInternal>(e: E): InputEvent {
+  const { _ts: _ignoredTs, _status: _ignoredStatus, ...rest } = e;
+  return rest as InputEvent;
+}
+
 /** Gom theo status + khoảng cách time; sau đó cắt ≤ maxBatchSize */
 function groupOneUser(user: InputUser, opt?: GroupOptions): OutputBatch[] {
   const includeStatuses = opt?.includeStatuses?.map(toLower);
@@ -136,7 +143,8 @@ function groupOneUser(user: InputUser, opt?: GroupOptions): OutputBatch[] {
       if (includeStatuses && includeStatuses.length > 0) {
         return includeStatuses.includes(st);
       }
-      if (excludeNormal) return st !== 'normal' && st !== '';
+      // ✅ chỉ loại 'normal', giữ lại rỗng/null
+      if (excludeNormal) return st !== 'normal';
       return true;
     })
     .filter((e) => Number.isFinite(e._ts)); // bỏ event không có timestamp hợp lệ
@@ -165,11 +173,12 @@ function groupOneUser(user: InputUser, opt?: GroupOptions): OutputBatch[] {
       } else {
         // push nhóm cũ (cắt nhỏ nếu cần)
         for (const part of chunk(current, maxBatchSize)) {
+          const cooked = forceStatus
+            ? part.map((ev) => ({ ...ev, status: forceStatus }))
+            : part.map((ev) => ({ ...ev })); // clone nhẹ
           batches.push({
             user_id: user.user_id,
-            'event-detections': forceStatus
-              ? part.map((ev) => ({ ...ev, status: forceStatus }))
-              : part,
+            'event-detections': cooked,
             supplement: user.supplement ?? null,
           });
         }
@@ -178,22 +187,20 @@ function groupOneUser(user: InputUser, opt?: GroupOptions): OutputBatch[] {
     }
     // push nhóm cuối
     for (const part of chunk(current, maxBatchSize)) {
+      const cooked = forceStatus
+        ? part.map((ev) => ({ ...ev, status: forceStatus }))
+        : part.map((ev) => ({ ...ev }));
       batches.push({
         user_id: user.user_id,
-        'event-detections': forceStatus
-          ? part.map((ev) => ({ ...ev, status: forceStatus }))
-          : part,
+        'event-detections': cooked,
         supplement: user.supplement ?? null,
       });
     }
   }
 
-  // 4) Loại bỏ các field nội bộ (_ts, _status) khỏi output
+  // 4) Loại bỏ các field nội bộ (_ts, _status) khỏi output — type-safe
   for (const b of batches) {
-    b['event-detections'] = b['event-detections'].map((ev) => {
-      const { _ts, _status, ...rest } = ev as any;
-      return rest;
-    });
+    b['event-detections'] = b['event-detections'].map(stripInternal);
   }
 
   return batches;
@@ -210,15 +217,13 @@ export class UsersBatchGrouper {
       const grouped = groupOneUser(u, options);
       out.push(...grouped);
     }
-    // cuối cùng sort toàn cục theo thời gian batch đầu (nếu muốn)
+    // sort toàn cục theo thời gian batch đầu
     out.sort((a, b) => {
-      const ta =
-        a['event-detections']?.[0]?.detected_at ??
-        a['event-detections']?.[0]?.created_at;
-      const tb =
-        b['event-detections']?.[0]?.detected_at ??
-        b['event-detections']?.[0]?.created_at;
-      return parseDateMs(ta as any) - parseDateMs(tb as any);
+      const a0 = a['event-detections']?.[0];
+      const b0 = b['event-detections']?.[0];
+      const ta = a0?.detected_at ?? a0?.created_at;
+      const tb = b0?.detected_at ?? b0?.created_at;
+      return parseDateMs(ta ?? null) - parseDateMs(tb ?? null);
     });
     console.log(
       `UsersBatchGrouper.group: total users=${users.length}, batches=${out.length}`,

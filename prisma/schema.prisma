@@ -31,55 +31,6 @@ model activity_logs {
   @@index([resource_type], map: "idx_al_resource_type")
   @@index([severity], map: "idx_al_severity")
   @@index([timestamp], map: "idx_al_timestamp")
-  @@index([actor_id], map: "idx_activity_logs_actor_id")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model alerts {
-  alert_id                            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  event_id                            String            @db.Uuid
-  user_id                             String            @db.Uuid
-  alert_type                          alert_type_enum
-  severity                            severity_enum     @default(medium)
-  alert_message                       String
-  alert_data                          Json?
-  status                              alert_status_enum @default(active)
-  acknowledged_by                     String?           @db.Uuid
-  acknowledged_at                     DateTime?         @db.Timestamptz(6)
-  resolution_notes                    String?
-  created_at                          DateTime          @default(now()) @db.Timestamptz(6)
-  resolved_at                         DateTime?         @db.Timestamptz(6)
-  users_alerts_acknowledged_byTousers users?            @relation("alerts_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
-  event_detections                    event_detections  @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
-  users_alerts_user_idTousers         users             @relation("alerts_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
-  notifications                       notifications[]
-
-  @@index([acknowledged_by], map: "idx_alerts_ack_by")
-  @@index([created_at], map: "idx_alerts_created")
-  @@index([event_id], map: "idx_alerts_event")
-  @@index([severity], map: "idx_alerts_severity")
-  @@index([status], map: "idx_alerts_status")
-  @@index([alert_type], map: "idx_alerts_type")
-  @@index([user_id], map: "idx_alerts_user")
-  @@index([user_id, status, created_at], map: "idx_alerts_user_status")
-}
-
-model app_client_roles {
-  app_id      String      @db.Uuid
-  role        role_enum
-  app_clients app_clients @relation(fields: [app_id], references: [app_id], onDelete: Cascade)
-
-  @@id([app_id, role])
-  @@index([role], map: "idx_app_client_roles_role")
-}
-
-model app_clients {
-  app_id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code             String             @unique @db.VarChar(50)
-  name             String
-  app_client_roles app_client_roles[]
-
-  @@index([code], map: "idx_app_clients_code")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -102,7 +53,6 @@ model cameras {
   last_heartbeat_at DateTime?          @db.Timestamptz(6)
   created_at        DateTime           @default(now()) @db.Timestamptz(6)
   updated_at        DateTime           @default(now()) @db.Timestamptz(6)
-  camera_issues     camera_issues[]
   users             users              @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   event_detections  event_detections[]
   snapshots         snapshots[]
@@ -169,16 +119,16 @@ model event_detections {
   confirm_status                            Boolean?
   status                                    event_status_enum?
   confirmation_state                        confirmation_state_enum @default(DETECTED)
-  pending_reason                            String?
   pending_until                             DateTime?               @db.Timestamptz(6)
   proposed_status                           String?
-  previous_status                           event_status_enum?
+  proposed_event_type                       String?
+  proposed_reason                           String?
   proposed_by                               String?                 @db.Uuid
-  alerts                                    alerts[]
   cameras                                   cameras                 @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
   snapshots                                 snapshots               @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade)
   users_event_detections_user_idTousers     users                   @relation("event_detections_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
   users_event_detections_verified_byTousers users?                  @relation("event_detections_verified_byTousers", fields: [verified_by], references: [user_id])
+  notifications                             notifications[]
 
   @@index([acknowledged_at], map: "idx_ed_ack_at")
   @@index([camera_id], map: "idx_ed_camera")
@@ -220,22 +170,28 @@ model fcm_tokens {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notifications {
-  notification_id   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  alert_id          String            @db.Uuid
-  user_id           String            @db.Uuid
-  notification_type notif_type_enum
-  message           String
-  delivery_data     Json?
-  status            notif_status_enum @default(pending)
-  sent_at           DateTime?         @db.Timestamptz(6)
-  delivered_at      DateTime?         @db.Timestamptz(6)
-  retry_count       Int?              @default(0)
-  error_message     String?
-  read_at           DateTime?         @db.Timestamptz(6)
-  alert             alerts            @relation(fields: [alert_id], references: [alert_id], onDelete: Cascade)
-  users             users             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  notification_id                            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                    String            @db.Uuid
+  event_id                                   String?           @db.Uuid
+  notification_type                          notif_type_enum
+  severity                                   severity_enum     @default(medium)
+  title                                      String?           @db.VarChar(255)
+  message                                    String
+  delivery_data                              Json?
+  status                                     notif_status_enum @default(pending)
+  sent_at                                    DateTime?         @db.Timestamptz(6)
+  delivered_at                               DateTime?         @db.Timestamptz(6)
+  retry_count                                Int?              @default(0)
+  error_message                              String?
+  read_at                                    DateTime?         @db.Timestamptz(6)
+  acknowledged_by                            String?           @db.Uuid
+  acknowledged_at                            DateTime?         @db.Timestamptz(6)
+  created_at                                 DateTime          @default(now()) @db.Timestamptz(6)
+  resolved_at                                DateTime?         @db.Timestamptz(6)
+  users_notifications_acknowledged_byTousers users?            @relation("notifications_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
+  event_detections                           event_detections? @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  users                                      users             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  @@index([alert_id], map: "idx_notif_alert")
   @@index([retry_count], map: "idx_notif_retry")
   @@index([sent_at], map: "idx_notif_sent")
   @@index([status], map: "idx_notif_status")
@@ -243,6 +199,10 @@ model notifications {
   @@index([notification_type, status], map: "idx_notif_type_status")
   @@index([user_id], map: "idx_notif_user")
   @@index([read_at], map: "idx_notif_read")
+  @@index([acknowledged_by], map: "idx_notif_ack_by")
+  @@index([created_at], map: "idx_notif_created")
+  @@index([event_id], map: "idx_notif_event")
+  @@index([severity], map: "idx_notif_severity")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -258,7 +218,7 @@ model patient_habits {
   is_active           Boolean              @default(true)
   created_at          DateTime             @default(now()) @db.Timestamptz(6)
   updated_at          DateTime             @default(now()) @db.Timestamptz(6)
-  supplement_id       String?              @unique(map: "unique_patient_habits_supplement") @db.Uuid
+  supplement_id       String?              @db.Uuid
   user_id             String               @db.Uuid
   sleep_start         DateTime?            @db.Time(6)
   sleep_end           DateTime?            @db.Time(6)
@@ -296,154 +256,119 @@ model patient_supplements {
   call_confirmed_until    DateTime?                 @db.Timestamptz(6)
   height_cm               Int?
   weight_kg               Float?
-  patient_habits          patient_habits?
+  patient_habits          patient_habits[]
   patient_medical_records patient_medical_records[]
   users                   users?                    @relation(fields: [customer_id], references: [user_id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model payments {
-  payment_id      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id         String        @db.Uuid
-  amount          BigInt
-  description     String?
-  vnp_txn_ref     String?       @unique @db.VarChar(50)
-  status          String        @default("pending") @db.VarChar(20)
-  created_at      DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
-  plan_code       String?
-  plan_id         String?       @db.Uuid
-  vnp_create_date BigInt?
-  vnp_expire_date BigInt?
-  vnp_order_info  String?
-  version         String?       @db.VarChar(20)
-  plans           plans?        @relation("PaymentToPlan", fields: [plan_id], references: [id], map: "fk_payments_plan_id")
-  users           users         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  transaction     transaction[]
+  payment_id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String                @db.Uuid
+  amount              BigInt
+  currency            String                @default("VND") @db.VarChar(3)
+  provider            PaymentProvider
+  status              String                @default("pending") @db.VarChar(20)
+  description         String?
+  delivery_data       Json?
+  vnp_txn_ref         String?               @unique @db.VarChar(50)
+  vnp_create_date     BigInt?
+  vnp_expire_date     BigInt?
+  vnp_order_info      String?
+  version             String?               @db.VarChar(20)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  users               users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  subscription_events subscription_events[]
+  transaction         transaction?
 
-  @@index([plan_code], map: "idx_payments_plan_code")
-  @@index([plan_id], map: "idx_payments_plan_id")
-  @@index([status], map: "idx_payments_status")
-  @@index([user_id], map: "idx_payments_user_id")
+  @@index([status], map: "idx_pay_status")
+  @@index([user_id], map: "idx_pay_user")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model plans {
-  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code                   String
-  name                   String
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                   String              @unique @db.VarChar(50)
+  name                   String              @db.VarChar(255)
+  description            String?
   price                  BigInt
-  camera_quota           Int
-  retention_days         Int
-  caregiver_seats        Int
-  sites                  Int              @default(1)
-  major_updates_months   Int              @default(24)
-  created_at             DateTime?        @default(now()) @db.Timestamptz(6)
-  storage_size           String?          @db.VarChar
-  is_recommended         Boolean          @default(false)
-  tier                   Int              @default(1)
-  currency               String           @default("VND") @db.VarChar(3)
-  status                 plan_status_enum @default(available)
-  is_current             Boolean?
-  version                String           @db.VarChar
-  effective_from         DateTime?        @db.Timestamptz(6)
-  effective_to           DateTime?        @db.Timestamptz(6)
-  successor_plan_code    String?          @db.VarChar
-  successor_plan_version String?          @db.VarChar(20)
-  billing_period_days    Int              @default(30)
-  payments               payments[]       @relation("PaymentToPlan")
-  subscriptions          subscriptions[]  @relation("SubscriptionToPlan")
-  transactions           transaction[]    @relation("TransactionToPlan")
+  currency               String              @default("VND") @db.VarChar(10)
+  billing_period         billing_period_enum @default(monthly)
+  is_active              Boolean             @default(true)
+  is_current             Boolean             @default(true)
+  camera_quota           Int                 @default(0)
+  storage_size           String?
+  retention_days         Int                 @default(30)
+  caregiver_seats        Int                 @default(0)
+  sites                  Int                 @default(1)
+  major_updates_months   Int                 @default(12)
+  version                String?             @db.VarChar(20)
+  effective_from         DateTime?
+  effective_to           DateTime?
+  is_recommended         Boolean?            @default(false)
+  successor_plan_code    String?             @db.VarChar(50)
+  successor_plan_version String?             @db.VarChar(20)
+  tier                   Int?                @default(1)
+  status                 plan_status_enum    @default(available)
+  created_at             DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime            @default(now()) @db.Timestamptz(6)
+  subscriptions          subscriptions[]     @relation("SubscriptionToPlan")
+  transactions           transaction[]       @relation("TransactionToPlan")
 
-  @@unique([code, version], map: "unique_plan_code_version")
-  @@index([code], map: "idx_plans_code")
-  @@index([is_current], map: "idx_plans_is_current")
-  @@index([status], map: "idx_plans_status")
-  @@index([effective_from], map: "idx_plans_effective_from")
-  @@index([effective_to], map: "idx_plans_effective_to")
-  @@index([code, is_current], map: "idx_plans_code_current")
+  @@index([code, is_current])
+  @@index([is_active])
 }
 
 /// transaction: bản ghi thanh toán/kỳ hiệu lực, snapshot cấu hình gói tại thời điểm giao dịch
 model transaction {
-  tx_id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agreement_id         String            @db.Uuid
+  tx_id                String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id      String                @db.Uuid
+  plan_id              String?               @db.Uuid
   plan_code            String
-  plan_id              String?           @db.Uuid
   plan_snapshot        Json
   amount_subtotal      BigInt
-  amount_discount      BigInt            @default(0)
-  amount_tax           BigInt            @default(0)
+  amount_discount      BigInt                @default(0)
+  amount_tax           BigInt                @default(0)
   amount_total         BigInt
-  currency             String            @default("VND") @db.VarChar(3)
-  period_start         DateTime          @db.Timestamptz(6)
-  period_end           DateTime          @db.Timestamptz(6)
-  status               TransactionStatus
+  currency             String                @default("VND") @db.VarChar(3)
+  period_start         DateTime              @db.Timestamptz(6)
+  period_end           DateTime              @db.Timestamptz(6)
+  status               invoice_status_enum   @default(draft)
+  due_date             DateTime?             @db.Timestamptz(6)
+  paid_at              DateTime?             @db.Timestamptz(6)
+  payment_id           String?               @unique(map: "uq_tx_payment_id") @db.Uuid
   effective_action     TransactionAction
   provider             PaymentProvider
-  provider_payment_id  String?           @db.VarChar(100)
-  idempotency_key      String?           @db.VarChar(100)
-  related_tx_id        String?           @db.Uuid
+  provider_payment_id  String?               @db.VarChar(100)
+  idempotency_key      String?               @db.VarChar(100)
+  related_tx_id        String?               @db.Uuid
   notes                String?
-  created_at           DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime          @updatedAt @db.Timestamptz(6)
-  is_proration         Boolean           @default(false)
-  payment_id           String?           @db.Uuid
+  created_at           DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime              @updatedAt @db.Timestamptz(6)
+  is_proration         Boolean               @default(false)
   plan_snapshot_new    Json?
   plan_snapshot_old    Json?
-  proration_charge     BigInt            @default(0)
-  proration_credit     BigInt            @default(0)
-  version              String?           @db.VarChar(20)
-  invoices             invoices[]
-  subscriptions        subscriptions     @relation(fields: [agreement_id], references: [subscription_id], onDelete: Cascade)
-  payments             payments?         @relation(fields: [payment_id], references: [payment_id])
-  plans                plans?            @relation("TransactionToPlan", fields: [plan_id], references: [id])
-  related_tx           transaction?      @relation("RelatedTx", fields: [related_tx_id], references: [tx_id])
-  related_transactions transaction[]     @relation("RelatedTx")
+  proration_charge     BigInt                @default(0)
+  proration_credit     BigInt                @default(0)
+  version              String?               @db.VarChar(20)
+  subscription_events  subscription_events[]
+  payments             payments?             @relation(fields: [payment_id], references: [payment_id])
+  plans                plans?                @relation("TransactionToPlan", fields: [plan_id], references: [id])
+  related_tx           transaction?          @relation("RelatedTx", fields: [related_tx_id], references: [tx_id])
+  related_transactions transaction[]         @relation("RelatedTx")
+  subscriptions        subscriptions         @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
 
-  @@unique([agreement_id, idempotency_key], map: "uq_tx_idempotency_per_agreement")
-  @@index([payment_id], map: "idx_tx_payment")
-  @@index([tx_id], map: "idx_pay_tx")
-  @@index([agreement_id], map: "idx_tx_agreement")
+  @@unique([subscription_id, idempotency_key], map: "uq_tx_idem_per_sub")
   @@index([status], map: "idx_tx_status")
   @@index([period_start], map: "idx_tx_period_start")
   @@index([period_end], map: "idx_tx_period_end")
   @@index([provider_payment_id], map: "idx_tx_provider_payment_id")
   @@index([plan_code], map: "idx_tx_plan_code")
   @@index([plan_id], map: "idx_tx_plan_id")
+  @@index([subscription_id], map: "idx_tx_sub")
   @@map("transactions")
-}
-
-/// Invoice: bản ghi hóa đơn với snapshot giá tại thời điểm tạo
-model invoices {
-  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscription_id String              @db.Uuid
-  transaction_id  String?             @db.Uuid
-  status          invoice_status_enum @default(draft)
-  invoice_number  String?             @unique @db.VarChar(50)
-  currency        String              @default("VND") @db.VarChar(3)
-  subtotal_amount BigInt              @default(0)
-  tax_amount      BigInt              @default(0)
-  discount_amount BigInt              @default(0)
-  total_amount    BigInt
-  period_start    DateTime            @db.Timestamptz(6)
-  period_end      DateTime            @db.Timestamptz(6)
-  due_date        DateTime?           @db.Timestamptz(6)
-  paid_at         DateTime?           @db.Timestamptz(6)
-  snapshot        Json
-  description     String?
-  created_at      DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
-  subscriptions   subscriptions       @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
-  transaction     transaction?        @relation(fields: [transaction_id], references: [tx_id])
-
-  @@index([subscription_id], map: "idx_invoices_subscription")
-  @@index([status], map: "idx_invoices_status")
-  @@index([period_start], map: "idx_invoices_period_start")
-  @@index([period_end], map: "idx_invoices_period_end")
-  @@index([due_date], map: "idx_invoices_due_date")
-  @@map("invoices")
 }
 
 /// Email templates for dynamic email rendering
@@ -505,11 +430,28 @@ model subscription_events {
   subscription_id String                       @db.Uuid
   event_type      subscription_event_type_enum
   event_data      Json?
+  old_plan_code   String?                      @db.VarChar(50)
+  new_plan_code   String?                      @db.VarChar(50)
+  old_status      subscription_status_enum?
+  new_status      subscription_status_enum?
+  triggered_by    String?                      @db.Uuid
+  reason          String?                      @db.VarChar(255)
+  tx_id           String?                      @db.Uuid
+  payment_id      String?                      @db.Uuid
   created_at      DateTime                     @default(now()) @db.Timestamptz(6)
+  payments        payments?                    @relation(fields: [payment_id], references: [payment_id])
   subscriptions   subscriptions                @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
+  users           users?                       @relation(fields: [triggered_by], references: [user_id])
+  transactions    transaction?                 @relation(fields: [tx_id], references: [tx_id])
 
   @@index([subscription_id], map: "idx_sub_events_sub")
   @@index([event_type], map: "idx_sub_events_type")
+  @@index([subscription_id, event_type, created_at(sort: Desc)], map: "idx_sub_events_composite")
+  @@index([new_plan_code], map: "idx_sub_events_new_plan")
+  @@index([old_plan_code], map: "idx_sub_events_old_plan")
+  @@index([payment_id], map: "idx_sub_events_payment")
+  @@index([triggered_by], map: "idx_sub_events_triggered_by")
+  @@index([tx_id], map: "idx_sub_events_tx")
 }
 
 model subscriptions {
@@ -534,7 +476,8 @@ model subscriptions {
   last_payment_at       DateTime?                @db.Timestamptz(6)
   version               String?                  @db.VarChar(20)
   cancel_at_period_end  Boolean                  @default(false)
-  invoices              invoices[]
+  offer_start_date      DateTime?                @db.Timestamptz(6)
+  offer_end_date        DateTime?                @db.Timestamptz(6)
   subscription_events   subscription_events[]
   plans                 plans?                   @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
   users                 users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -584,17 +527,13 @@ model users {
   otp_code                                                  String?
   otp_expires_at                                            DateTime?               @db.Timestamptz(6)
   activity_logs                                             activity_logs[]
-  alerts_alerts_acknowledged_byTousers                      alerts[]                @relation("alerts_acknowledged_byTousers")
-  alerts_alerts_user_idTousers                              alerts[]                @relation("alerts_user_idTousers")
-  camera_issues_reporter                                    camera_issues[]         @relation("camera_issues_reporter")
-  camera_issues_resolver                                    camera_issues[]         @relation("camera_issues_resolver")
-  camera_issues                                             camera_issues[]
   cameras                                                   cameras[]
   caregiver_invitations                                     caregiver_invitations[]
   emergency_contacts                                        emergency_contacts[]
   event_detections_event_detections_user_idTousers          event_detections[]      @relation("event_detections_user_idTousers")
   event_detections_event_detections_verified_byTousers      event_detections[]      @relation("event_detections_verified_byTousers")
   fcm_tokens                                                fcm_tokens[]
+  notifications_notifications_acknowledged_byTousers        notifications[]         @relation("notifications_acknowledged_byTousers")
   notifications                                             notifications[]
   patient_habits                                            patient_habits[]
   patient_supplements                                       patient_supplements[]
@@ -602,6 +541,7 @@ model users {
   shared_permissions_shared_permissions_caregiver_idTousers shared_permissions[]    @relation("shared_permissions_caregiver_idTousers")
   shared_permissions_shared_permissions_customer_idTousers  shared_permissions[]    @relation("shared_permissions_customer_idTousers")
   snapshots                                                 snapshots[]
+  subscription_events                                       subscription_events[]
   subscriptions                                             subscriptions[]
   system_settings                                           system_settings[]
   ticket                                                    ticket[]
@@ -627,6 +567,8 @@ model shared_permissions {
   log_access_days                              Int?     @default(0)
   report_access_days                           Int?     @default(0)
   notification_channel                         Json?    @default("[]")
+  permission_requests                          Json?    @default("[]")
+  permission_scopes                            Json?    @default("{}")
   created_at                                   DateTime @default(now()) @db.Timestamptz(6)
   updated_at                                   DateTime @default(now()) @db.Timestamptz(6)
   users_shared_permissions_caregiver_idTousers users    @relation("shared_permissions_caregiver_idTousers", fields: [caregiver_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
@@ -651,41 +593,6 @@ model ticket {
   @@index([type], map: "idx_customer_requests_type")
   @@index([status], map: "idx_customer_requests_status")
   @@index([user_id], map: "idx_customer_requests_user")
-}
-
-model camera_issues {
-  issue_id    String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  camera_id   String                     @db.Uuid
-  user_id     String                     @db.Uuid
-  issue_type  camera_issue_type_enum
-  severity    camera_issue_severity_enum
-  status      camera_issue_status_enum   @default(open)
-  description String?
-  phone       String?                    @db.VarChar(20)
-  notes       String?
-  attachments Json?
-  consent     Boolean?                   @default(false)
-  source      String                     @default("internal") @db.VarChar(20)
-  reported_by String?                    @db.Uuid
-  reported_at DateTime                   @default(now()) @db.Timestamptz(6)
-  resolved_by String?                    @db.Uuid
-  resolved_at DateTime?                  @db.Timestamptz(6)
-  resolution  String?
-  metadata    Json?
-  cameras     cameras                    @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
-  reporter    users?                     @relation("camera_issues_reporter", fields: [reported_by], references: [user_id])
-  resolver    users?                     @relation("camera_issues_resolver", fields: [resolved_by], references: [user_id])
-  users       users                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@index([camera_id], map: "idx_camera_issues_camera")
-  @@index([user_id], map: "idx_camera_issues_user")
-  @@index([reported_by], map: "idx_camera_issues_reported_by")
-  @@index([resolved_by], map: "idx_camera_issues_resolved_by")
-  @@index([status], map: "idx_camera_issues_status")
-  @@index([issue_type], map: "idx_camera_issues_type")
-  @@index([severity], map: "idx_camera_issues_severity")
-  @@index([reported_at], map: "idx_camera_issues_reported_at")
-  @@index([source], map: "idx_camera_issues_source")
 }
 
 model user_settings {
@@ -750,16 +657,6 @@ model role_permissions {
   @@id([role_id, permission_id])
   @@index([permission_id], map: "idx_role_permissions_permission")
   @@index([role_id], map: "idx_role_permissions_role")
-}
-
-enum TransactionStatus {
-  pending
-  booked
-  succeeded
-  failed
-  canceled
-  refunded
-  chargeback
 }
 
 enum TransactionAction {
@@ -872,6 +769,7 @@ enum event_type_enum {
   normal_activity
   medication_time
   visitor_detected
+  sleep
 }
 
 enum frequency_enum {
@@ -999,30 +897,6 @@ enum invoice_status_enum {
   paid
   void
   overdue
-}
-
-enum camera_issue_type_enum {
-  connection_error
-  authentication_error
-  network_error
-  hardware_error
-  configuration_error
-  performance_error
-  other
-}
-
-enum camera_issue_severity_enum {
-  low
-  medium
-  high
-  critical
-}
-
-enum camera_issue_status_enum {
-  open
-  investigating
-  resolved
-  closed
 }
 
 enum upload_type_enum {
