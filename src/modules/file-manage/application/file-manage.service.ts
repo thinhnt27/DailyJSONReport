@@ -1,6 +1,10 @@
 // src/modules/file-manage/application/file-manage.service.ts
-import { Injectable } from '@nestjs/common';
-import { promises as fs } from 'fs';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { createReadStream, promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { randomUUID, createHash } from 'crypto';
 
@@ -19,6 +23,9 @@ function formatVNDateFolder(d: Date) {
   }).format(d);
   return s.replace(/\//g, '-'); // dd-MM-yyyy
 }
+
+const SUBDIR_SAFE = /[^\w./-]/g;
+const DATE_DDMMYYYY = /^\d{2}-\d{2}-\d{4}$/;
 
 @Injectable()
 export class FileManageService {
@@ -49,6 +56,86 @@ export class FileManageService {
       fullPath,
       size: jsonBuf.length,
       checksum,
+    };
+  }
+
+  async findFirstJsonPathByDate(subdir: string | undefined, date: string) {
+    const cleanSubdir = (subdir ?? 'events').replace(SUBDIR_SAFE, '');
+    if (!DATE_DDMMYYYY.test(date))
+      throw new NotFoundException('Invalid date format dd-MM-yyyy');
+
+    const dir = join(this.baseDir, cleanSubdir, date);
+    let entries: import('fs').Dirent[];
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      throw new NotFoundException(`Folder not found: ${cleanSubdir}/${date}`);
+    }
+
+    const files = entries
+      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.json'))
+      .map((e) => e.name);
+
+    if (files.length === 0) {
+      throw new NotFoundException(`No JSON files in ${cleanSubdir}/${date}`);
+    }
+
+    // Lấy file mới nhất theo mtime
+    const stats = await Promise.all(
+      files.map(async (name) => {
+        const full = join(dir, name);
+        const st = await fs.stat(full);
+        return { name, full, mtimeMs: st.mtimeMs, size: st.size };
+      }),
+    );
+    stats.sort((a, b) => b.mtimeMs - a.mtimeMs);
+    const top = stats[0];
+    return top; // { name, full, mtimeMs, size }
+  }
+
+  /** Đọc và parse JSON đầu tiên theo ngày */
+  async readFirstJsonByDate<T = unknown>(input: {
+    subdir?: string;
+    date: string;
+  }): Promise<{
+    filename: string;
+    fullPath: string;
+    size: number;
+    mtimeMs: number;
+    data: T;
+  }> {
+    const f = await this.findFirstJsonPathByDate(input.subdir, input.date);
+    const buf = await fs.readFile(f.full);
+    const text = buf.toString('utf-8');
+
+    // parse sang unknown trước (tránh any)
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text) as unknown;
+    } catch {
+      throw new BadRequestException('Invalid JSON content');
+    }
+
+    // Nếu bạn không có schema, assert T ở đây (chấp nhận rủi ro dữ liệu sai shape)
+    const data = parsed as T;
+
+    return {
+      filename: f.name,
+      fullPath: f.full,
+      size: f.size,
+      mtimeMs: f.mtimeMs,
+      data,
+    };
+  }
+
+  /** Lấy stream file thô (để tải về) */
+  async streamFirstJsonByDate(input: { subdir?: string; date: string }) {
+    const f = await this.findFirstJsonPathByDate(input.subdir, input.date);
+    return {
+      filename: f.name,
+      fullPath: f.full,
+      size: f.size,
+      stream: createReadStream(f.full),
     };
   }
 }
