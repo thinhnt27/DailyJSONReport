@@ -7,6 +7,7 @@ import { LmStudioService } from '@modules/lm-studio/application/lmstudio.service
 import { EVENT_DETECTIONS_REPO } from './domain/repositories/event-detections.repo.interface';
 import { PrismaEventDetectionsRepo } from './infra/prisma/event-detections.repo';
 import { EventDetectionsController } from './interface/event-detections.controller';
+import { FileManageService } from '../file-manage/application/file-manage.service';
 
 @Module({
   imports: [
@@ -23,7 +24,13 @@ import { EventDetectionsController } from './interface/event-detections.controll
     EventDetectionsService,
     // EventDetectionsScheduler,
     LmStudioService,
+    FileManageService,
   ],
-  exports: [EventDetectionsService, EVENT_DETECTIONS_REPO, LmStudioService],
+  exports: [
+    EventDetectionsService,
+    EVENT_DETECTIONS_REPO,
+    LmStudioService,
+    FileManageService,
+  ],
 })
 export class EventDetectionsModule {}

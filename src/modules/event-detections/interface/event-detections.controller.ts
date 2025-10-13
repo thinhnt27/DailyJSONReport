@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { EventDetectionsService } from '../application/event-detections.service';
 import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
 import { FetchEventsQueryDto } from './dto/fetch-events.dto';
@@ -49,4 +49,11 @@ export class EventDetectionsController {
   //   // Trigger analysis immediately for testing purposes (matches cron)
   //   // return this.service.fetchEventsAndAnalyze();
   // }
+
+  @Post('analyze-to-file')
+  @HttpCode(200)
+  async analyzeAndSave(): Promise<{ status: 'ok'; saved: true; at: string }> {
+    await this.service.fetchEventsAndAnalyzeToFile();
+    return { status: 'ok', saved: true, at: new Date().toISOString() };
+  }
 }
