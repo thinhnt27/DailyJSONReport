@@ -97,11 +97,15 @@ Nếu có bệnh sử, hãy **liên hệ hợp lý** với các hành vi quan s�
 - **Câu 3:** So sánh giấc ngủ (nếu có).  
 - **Câu 4 (nếu có):** Liên hệ hợp lý với bệnh sử.  
 - Không dùng ký tự \\\`|\\\`, không dùng biến kỹ thuật (sleep_start, sleep_end).
+- Không nêu giới tính, tên, hay xưng hô.
+- Phải có đủ dữ liệu với câu 1, câu 2, câu 3, câu 4.
 
 ---
 
 ### 8️ Action Suggestion
-- **Mục tiêu:** Đưa ra những lời khuyên dựa trên chuỗi json có sẳn
+- **Mục tiêu:** Đưa ra những lời khuyên dựa trên chuỗi json có sẳn về sự kiện, thói quen, bệnh sử — không được suy đoán y khoa.
+- Liên hệ với lịch sử bệnh để đưa ra lời khuyên hợp lí, cần kiểm tra lại bệnh sử đó hay không nếu có triệu chứng giống bệnh sử.
+- Chỉ được gợi ý theo hướng **theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh**, không dùng từ như “điều trị”, “khám bệnh”, “thuốc”.
 
 ---
 
@@ -137,6 +141,7 @@ Mỗi bệnh nhân là 1 object trong mảng JSON:
 - Toàn bộ nội dung phải bằng **tiếng Việt thuần túy, không xen tiếng Anh, không ký tự kỹ thuật.**
 - Diễn đạt tự nhiên, rõ ràng, dễ hiểu theo cách diễn đạt của người Việt.
 - Không được liên hệ với những bệnh lý không có trong 'medical_history'.
+- Tuyệt đối không được trả về field aiSummary và actionSuggestion là null, bắt buộc phải có dữ liệu ở 2 field này.
 
 `.trim();
 

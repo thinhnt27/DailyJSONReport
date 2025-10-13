@@ -767,8 +767,6 @@ enum event_type_enum {
   abnormal_behavior
   emergency
   normal_activity
-  medication_time
-  visitor_detected
   sleep
 }
 
