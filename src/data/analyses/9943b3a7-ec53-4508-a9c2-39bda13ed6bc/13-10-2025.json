@@ -1,0 +1,69 @@
+{
+  "user_id": "9943b3a7-ec53-4508-a9c2-39bda13ed6bc",
+  "date": "13-10-2025",
+  "analyses": [
+    {
+      "user_id": "9943b3a7-ec53-4508-a9c2-39bda13ed6bc",
+      "dailyActivityLog": [
+        {
+          "start_time": "1970-01-01T00:00:00.000Z",
+          "end_time": "1970-01-01T05:30:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngã, cần theo dõi và phòng tránh. Theo dõi thêm camera để xác nhận. ",
+          "actionSuggestion": "Theo dõi thêm camera."
+        },
+        {
+          "start_time": "2025-09-22T16:00:00.000Z",
+          "end_time": "2025-09-22T20:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "",
+          "actionSuggestion": ""
+        },
+        {
+          "start_time": "2025-09-24T07:00:00.000Z",
+          "end_time": "2025-09-24T14:19:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa 30 phút sau bữa trưa, nhưng đã phát hiện tình huống khẩn cấp tại 14:19. Bệnh nhân nên điều chỉnh thói quen ngủ để tránh tình trạng này.",
+          "actionSuggestion": "Khuyên bệnh nhân nên thay đổi thói quen ngủ trưa"
+        },
+        {
+          "start_time": "2025-09-24T16:11:00.000Z",
+          "end_time": "1970-01-01T05:30:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có thói quen ngã, cần kiểm tra ngay lập tức.",
+          "actionSuggestion": "Cần theo dõi và giám sát bệnh nhân để tránh xảy ra tai nạn."
+        },
+        {
+          "start_time": "2025-09-26T00:00:00.000Z",
+          "end_time": "2025-09-26T01:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa 30 phút sau bữa trưa để phục hồi sức khỏe, tuy nhiên đã phát hiện hành vi bất thường vào lúc 08:13 ngày 26/09/2025; Cảnh báo: Trạng thái: Cảnh báo | Phát hiện hành vi bất thường – Độ tin cậy 93% | Thời gian 08:13 26/09/2025 | Ghi chú: Phát hiện hành vi bất thường cần caregiver xem lại.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-09-28T11:00:00.000Z",
+          "end_time": "2025-09-28T18:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cảnh báo về hành vi bất thường – Nguy hiểm cho sức khỏe; Suggest: Theo dõi, kiểm tra, rà soát giấc ngủ.",
+          "actionSuggestion": "Theo dõi, kiểm tra, rà soát giấc ngủ."
+        },
+        {
+          "start_time": "2025-09-28T19:00:00.000Z",
+          "end_time": "2025-09-29T02:19:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa 30 phút sau bữa trưa và đã có cảnh báo khẩn cấp từ hệ thống cảm biến. Cảnh báo khẩn cấp do thói quen này có thể gây ra nhiều rối loạn sức khỏe khác nhau, đặc biệt là về tim mạch.",
+          "actionSuggestion": "Can thiệp để thay đổi thói quen ngủ trưa và tăng cường các hoạt động thể dục ngoài trời"
+        },
+        {
+          "start_time": "2025-10-12T05:00:00.000Z",
+          "end_time": "2025-10-12T11:04:24.056Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa 30 phút sau bữa trưa. Today, patient has abnormal behavior at 11:04 AM with a confidence score of 95%. Please verify and confirm the status.",
+          "actionSuggestion": "Please monitor and check the patient's behavior throughout the day for any abnormalities."
+        }
+      ],
+      "mostActivePeriod": "18:00-01:23",
+      "mostAbnormalPeriod": "23:11-12:30"
+    }
+  ]
+}

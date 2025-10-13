@@ -166,7 +166,7 @@ export class EventDetectionsService {
 
     for (const [idx, batch] of targetedBatches.entries()) {
       this.logger.debug(
-        `🚀 [Batch ${idx + 1}/${targetedBatches.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
+        `[Batch ${idx + 1}/${targetedBatches.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
       );
 
       // Log payload đẹp, dễ đọc
@@ -202,23 +202,34 @@ export class EventDetectionsService {
       resultsV2.push(folded);
     }
 
-    // --- ⬇️ GHI FILE JSON, KHÔNG RETURN ---
-    // payload muốn lưu (có thể thêm metadata nếu cần)
-    const payload = {
-      generated_at: new Date().toISOString(),
-      total_users: resultsV2.length,
-      analyses: resultsV2,
-    };
+    // // --- GHI FILE JSON, KHÔNG RETURN ---
+    // // payload muốn lưu (có thể thêm metadata nếu cần)
+    // const payload = {
+    //   generated_at: new Date().toISOString(),
+    //   total_users: resultsV2.length,
+    //   analyses: resultsV2,
+    // };
 
-    // Lưu vào thư mục dạng "dd-MM-yyyy" (đã cấu hình trong FileManageService)
-    const saved = await this.files.saveJson({
-      subdir: 'analyses', // sẽ ra data/analyses/<dd-MM-yyyy>/...
-      nameHint: 'resultsV2', // tên gợi ý
-      data: payload,
+    // // Lưu vào thư mục dạng "dd-MM-yyyy" (đã cấu hình trong FileManageService)
+    // const saved = await this.files.saveJson({
+    //   subdir: 'analyses', // sẽ ra data/analyses/<dd-MM-yyyy>/...
+    //   nameHint: 'resultsV2', // tên gợi ý
+    //   data: payload,
+    // });
+
+    // this.logger.log(
+    //   `Analyses saved: ${saved.filename} (size=${saved.size}B, checksum=${saved.checksum})`,
+    // );
+
+    // Lưu theo user: mỗi user 1 file/ngày, nếu đã có file thì merge thêm vào `analyses`
+    const writes = await this.files.saveAnalysesByUser({
+      items: resultsV2, // mảng kết quả, mỗi item có field user_id
+      // date: '13-10-2025',      // (tuỳ chọn) ép ngày; nếu không truyền thì tự lấy ngày hiện tại (Asia/Ho_Chi_Minh)
     });
 
-    this.logger.log(
-      `✅ Analyses saved: ${saved.filename} (size=${saved.size}B, checksum=${saved.checksum})`,
-    );
+    this.logger.log(`✅ Wrote ${writes.length} files:`);
+    for (const w of writes) {
+      this.logger.log(` - ${w.fullPath} (${w.size}B) created=${w.created}`);
+    }
   }
 }

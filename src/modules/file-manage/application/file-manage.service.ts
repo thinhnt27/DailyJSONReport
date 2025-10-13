@@ -9,9 +9,16 @@ import { join, dirname } from 'path';
 import { randomUUID, createHash } from 'crypto';
 
 export type SaveJsonInput = {
-  subdir?: string; // vd: 'events' | 'analyses'
-  nameHint?: string; // vd: 'event_123'
+  subdir?: string; // vẫn dùng được nếu bạn còn cần
+  nameHint?: string;
   data: unknown;
+};
+
+type SaveByUserInput = {
+  /** Mảng kết quả, mỗi item phải có user_id */
+  items: unknown[]; // ví dụ: AiUserAnalysisV2[]
+  /** Mặc định: ngày hiện tại (Asia/Ho_Chi_Minh), định dạng dd-MM-yyyy */
+  date?: string; // nếu bạn muốn ép ngày cụ thể
 };
 
 function formatVNDateFolder(d: Date) {
@@ -24,20 +31,45 @@ function formatVNDateFolder(d: Date) {
   return s.replace(/\//g, '-'); // dd-MM-yyyy
 }
 
-const SUBDIR_SAFE = /[^\w./-]/g;
+const SUBDIR_SAFE = /[^\w./-]/g; // không còn lỗi no-useless-escape
+
+function sanitizeUserId(uid: string) {
+  // chấp nhận a-zA-Z0-9-_ và dấu gạch dưới; bỏ ký tự lạ để tránh traversal
+  return uid.replace(/[^\w-]/g, '');
+}
+
+// src/modules/file-manage/application/file-manage.service.ts (bổ sung)
 const DATE_DDMMYYYY = /^\d{2}-\d{2}-\d{4}$/;
+
+function ddmmyyyyToUTC(d: string): Date {
+  const [dd, mm, yyyy] = d.split('-').map((x) => parseInt(x, 10));
+  if (!dd || !mm || !yyyy) throw new BadRequestException('Invalid date');
+  return new Date(Date.UTC(yyyy, mm - 1, dd));
+}
+function toDDMMYYYYFromUTC(d: Date): string {
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = d.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+function addUTC(d: Date, days: number): Date {
+  const n = new Date(d);
+  n.setUTCDate(n.getUTCDate() + days);
+  return n;
+}
 
 @Injectable()
 export class FileManageService {
-  // ⬇️ Đổi sang thư mục trong repo. Có thể set ENV FILE_BASE_DIR=src/data
+  // Thư mục trong repo (có thể đổi bằng ENV)
   private readonly baseDir = join(
     process.cwd(),
     process.env.FILE_BASE_DIR?.trim() || 'src/data',
   );
 
+  /** Giữ lại cho các usecase cũ (ghi 1 file bất kỳ) */
   async saveJson(input: SaveJsonInput) {
     const id = randomUUID();
-    const subdir = input.subdir?.replace(/[^\w\-./]/g, '') || 'events';
+    const subdir = input.subdir?.replace(SUBDIR_SAFE, '') || 'analyses';
     const dateFolder = formatVNDateFolder(new Date());
     const safeName = (input.nameHint ?? 'data').replace(/[^\w.-]+/g, '_');
 
@@ -59,43 +91,127 @@ export class FileManageService {
     };
   }
 
-  async findFirstJsonPathByDate(subdir: string | undefined, date: string) {
-    const cleanSubdir = (subdir ?? 'events').replace(SUBDIR_SAFE, '');
-    if (!DATE_DDMMYYYY.test(date))
-      throw new NotFoundException('Invalid date format dd-MM-yyyy');
-
-    const dir = join(this.baseDir, cleanSubdir, date);
-    let entries: import('fs').Dirent[];
-    try {
-      entries = await fs.readdir(dir, { withFileTypes: true });
-    } catch {
-      throw new NotFoundException(`Folder not found: ${cleanSubdir}/${date}`);
+  /**
+   * Ghi theo user: data/analyses/{userId}/{dd-MM-yyyy}.json
+   * - items: mảng trong đó mỗi item phải có field 'user_id'
+   * - nếu file tồn tại: merge thêm vào mảng analyses
+   * - trả về danh sách file đã ghi theo từng user
+   */
+  async saveAnalysesByUser(input: SaveByUserInput): Promise<
+    Array<{
+      userId: string;
+      date: string;
+      fullPath: string;
+      size: number;
+      checksum: string;
+      created: boolean; // true nếu tạo file mới, false nếu merge
+    }>
+  > {
+    if (!Array.isArray(input.items)) {
+      throw new BadRequestException('items must be an array');
     }
 
-    const files = entries
-      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.json'))
-      .map((e) => e.name);
+    const dateStr =
+      input.date && DATE_DDMMYYYY.test(input.date)
+        ? input.date
+        : formatVNDateFolder(new Date());
 
-    if (files.length === 0) {
-      throw new NotFoundException(`No JSON files in ${cleanSubdir}/${date}`);
+    // group theo user_id
+    const byUser = new Map<string, unknown[]>();
+    for (const it of input.items) {
+      const uid = (it as { user_id?: unknown })?.user_id;
+      if (typeof uid !== 'string' || uid.length === 0) continue;
+      const key = sanitizeUserId(uid);
+      if (!byUser.has(key)) byUser.set(key, []);
+      byUser.get(key)!.push(it);
     }
 
-    // Lấy file mới nhất theo mtime
-    const stats = await Promise.all(
-      files.map(async (name) => {
-        const full = join(dir, name);
-        const st = await fs.stat(full);
-        return { name, full, mtimeMs: st.mtimeMs, size: st.size };
-      }),
-    );
-    stats.sort((a, b) => b.mtimeMs - a.mtimeMs);
-    const top = stats[0];
-    return top; // { name, full, mtimeMs, size }
+    const results: Array<{
+      userId: string;
+      date: string;
+      fullPath: string;
+      size: number;
+      checksum: string;
+      created: boolean;
+    }> = [];
+
+    for (const [userId, arr] of byUser) {
+      const relPath = join('analyses', userId, `${dateStr}.json`);
+      const fullPath = join(this.baseDir, relPath);
+      await fs.mkdir(dirname(fullPath), { recursive: true });
+
+      let payload: unknown;
+      let created = false;
+
+      // Nếu đã có file → đọc và merge
+      try {
+        const existBuf = await fs.readFile(fullPath);
+        const existText = existBuf.toString('utf-8');
+        const existParsed = JSON.parse(existText) as unknown;
+
+        // kỳ vọng shape: { user_id, date, analyses: [] }
+        const obj = (existParsed ?? {}) as {
+          user_id?: unknown;
+          date?: unknown;
+          analyses?: unknown;
+        };
+        const existAnalyses: unknown[] = Array.isArray(obj.analyses)
+          ? (obj.analyses as unknown[])
+          : [];
+
+        payload = {
+          user_id: userId,
+          date: dateStr,
+          analyses: [...existAnalyses, ...arr],
+        };
+      } catch {
+        // không có file → tạo mới
+        payload = {
+          user_id: userId,
+          date: dateStr,
+          analyses: arr,
+        };
+        created = true;
+      }
+
+      const jsonBuf = Buffer.from(JSON.stringify(payload, null, 2), 'utf-8');
+      await fs.writeFile(fullPath, jsonBuf); // overwrite an toàn
+
+      const checksum = createHash('sha256').update(jsonBuf).digest('hex');
+      results.push({
+        userId,
+        date: dateStr,
+        fullPath,
+        size: jsonBuf.length,
+        checksum,
+        created,
+      });
+    }
+
+    return results;
   }
 
-  /** Đọc và parse JSON đầu tiên theo ngày */
-  async readFirstJsonByDate<T = unknown>(input: {
-    subdir?: string;
+  // ====== CÁC HÀM ĐỌC/TẢI CŨ: chỉnh theo layout mới ======
+
+  /** Lấy đúng file theo user + ngày */
+  async findUserJsonPathByDate(userId: string, date: string) {
+    if (!DATE_DDMMYYYY.test(date))
+      throw new NotFoundException('Invalid date format dd-MM-yyyy');
+    const uid = sanitizeUserId(userId);
+    const full = join(this.baseDir, 'analyses', uid, `${date}.json`);
+    try {
+      const st = await fs.stat(full);
+      return { name: `${date}.json`, full, mtimeMs: st.mtimeMs, size: st.size };
+    } catch {
+      throw new NotFoundException(
+        `File not found: analyses/${uid}/${date}.json`,
+      );
+    }
+  }
+
+  /** Đọc và parse JSON theo user + ngày */
+  async readUserJsonByDate<T = unknown>(input: {
+    userId: string;
     date: string;
   }): Promise<{
     filename: string;
@@ -104,11 +220,10 @@ export class FileManageService {
     mtimeMs: number;
     data: T;
   }> {
-    const f = await this.findFirstJsonPathByDate(input.subdir, input.date);
+    const f = await this.findUserJsonPathByDate(input.userId, input.date);
     const buf = await fs.readFile(f.full);
     const text = buf.toString('utf-8');
 
-    // parse sang unknown trước (tránh any)
     let parsed: unknown;
     try {
       parsed = JSON.parse(text) as unknown;
@@ -116,9 +231,7 @@ export class FileManageService {
       throw new BadRequestException('Invalid JSON content');
     }
 
-    // Nếu bạn không có schema, assert T ở đây (chấp nhận rủi ro dữ liệu sai shape)
     const data = parsed as T;
-
     return {
       filename: f.name,
       fullPath: f.full,
@@ -128,14 +241,91 @@ export class FileManageService {
     };
   }
 
-  /** Lấy stream file thô (để tải về) */
-  async streamFirstJsonByDate(input: { subdir?: string; date: string }) {
-    const f = await this.findFirstJsonPathByDate(input.subdir, input.date);
+  /** Stream file thô theo user + ngày */
+  async streamUserJsonByDate(input: { userId: string; date: string }) {
+    const f = await this.findUserJsonPathByDate(input.userId, input.date);
     return {
       filename: f.name,
       fullPath: f.full,
       size: f.size,
       stream: createReadStream(f.full),
     };
+  }
+
+  /**
+   * Liệt kê file theo user + khoảng ngày [from..to], có thể kèm data.
+   * - Bỏ qua ngày không có file (không throw).
+   */
+  async listUserJsonByDateRange<T = unknown>(input: {
+    userId: string;
+    from: string; // dd-MM-yyyy
+    to: string; // dd-MM-yyyy
+    includeData?: boolean; // mặc định false
+  }): Promise<
+    Array<{
+      date: string;
+      filename: string;
+      fullPath: string;
+      size: number;
+      mtimeMs: number;
+      data?: T;
+    }>
+  > {
+    const { userId, from, to, includeData = false } = input;
+    if (!DATE_DDMMYYYY.test(from) || !DATE_DDMMYYYY.test(to)) {
+      throw new BadRequestException('from/to must be dd-MM-yyyy');
+    }
+
+    const start = ddmmyyyyToUTC(from);
+    const end = ddmmyyyyToUTC(to);
+    if (start.getTime() > end.getTime()) {
+      throw new BadRequestException('from must be <= to');
+    }
+
+    const uid = sanitizeUserId(userId);
+    const out: Array<{
+      date: string;
+      filename: string;
+      fullPath: string;
+      size: number;
+      mtimeMs: number;
+      data?: T;
+    }> = [];
+
+    for (
+      let cur = start;
+      cur.getTime() <= end.getTime();
+      cur = addUTC(cur, 1)
+    ) {
+      const ds = toDDMMYYYYFromUTC(cur);
+      const full = join(this.baseDir, 'analyses', uid, `${ds}.json`);
+      try {
+        const st = await fs.stat(full);
+        const item: {
+          date: string;
+          filename: string;
+          fullPath: string;
+          size: number;
+          mtimeMs: number;
+          data?: T;
+        } = {
+          date: ds,
+          filename: `${ds}.json`,
+          fullPath: full,
+          size: st.size,
+          mtimeMs: st.mtimeMs,
+        };
+        if (includeData) {
+          const text = (await fs.readFile(full)).toString('utf-8');
+          const parsed = JSON.parse(text) as unknown;
+          item.data = parsed as T; // cast từ unknown (không vi phạm no-unsafe)
+        }
+        out.push(item);
+      } catch {
+        // không có file → bỏ qua ngày này
+      }
+    }
+
+    return out;
   }
 }
