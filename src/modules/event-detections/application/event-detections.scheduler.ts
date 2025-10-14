@@ -43,11 +43,11 @@ export class EventDetectionsScheduler {
   //     return this.handleDailyAnalysis();
   //   }
 
-  // ✅ Test cron: chạy mỗi 5 giây
-  // @Cron('*/5 * * * * *') // <-- mỗi 5 giây
-  // handleTestCron() {
-  //   this.logger.log('⏰ Test cron running every 5s');
-  // }
+  // Test cron: chạy mỗi 5 giây
+  @Cron('*/5 * * * * *') // <-- mỗi 5 giây
+  handleTestCron() {
+    this.logger.log('Test cron running every 5s');
+  }
 
   /** Utils: tạo chuỗi 'YYYY-MM-DD 12:00:00+07:00' cho hôm nay/hôm qua theo giờ VN */
   private pad2(n: number) {
@@ -71,7 +71,7 @@ export class EventDetectionsScheduler {
     return `${y}-${mm}-${dd} 12:00:00+07:00`;
   }
 
-  // ⏰ Chạy MỖI NGÀY lúc 12:00:00 trưa theo Asia/Ho_Chi_Minh
+  // Chạy MỖI NGÀY lúc 12:00:00 trưa theo Asia/Ho_Chi_Minh
   @Cron('0 0 12 * * *', { timeZone: 'Asia/Ho_Chi_Minh' })
   async runNoonDailyWindow() {
     // "Hôm nay" theo VN
