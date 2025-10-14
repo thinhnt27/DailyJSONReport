@@ -1,48 +1,26 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: ddd_pg
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: ddd_api
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://postgres.undznprwlqjpnxqsgyiv:12345678@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres
-      LM_API_BASE: http://host.docker.internal:1234/v1
-      LM_API_KEY: lm-studio
-      LM_MODEL: contactdoctor.bio-medical-llama-3-8b
-      DIRECT_URL: postgresql://postgres.undznprwlqjpnxqsgyiv:12345678@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
-      DB_LOGGING: true
-      TRUST_PROXY: true
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      LM_API_BASE: ${LM_API_BASE}
+      LM_API_KEY: ${LM_API_KEY}
+      LM_MODEL: ${LM_MODEL}
+      DB_LOGGING: 'true'
+      TRUST_PROXY: 'true'
+      TEST: 'true'
     ports:
-      - "3000:3000"
+      - '3000:3000'
     command: >
       sh -c "
       pnpm prisma migrate deploy || pnpm prisma db push;
       node dist/main.js
       "
-
-volumes:
-  pgdata:

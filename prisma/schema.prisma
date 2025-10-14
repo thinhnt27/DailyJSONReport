@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl", "linux-musl-arm64-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl", "linux-musl-arm64-openssl-3.0.x", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -39,7 +39,7 @@ model cameras {
   user_id           String             @db.Uuid
   camera_name       String             @db.VarChar(100)
   camera_type       camera_type_enum   @default(ip)
-  ip_address        String?            @unique @db.VarChar(45)
+  ip_address        String?            @db.VarChar(45)
   port              Int?               @default(80)
   rtsp_url          String?            @db.VarChar(255)
   username          String?            @db.VarChar(50)
@@ -60,6 +60,7 @@ model cameras {
   @@index([last_ping], map: "idx_cameras_last_ping")
   @@index([status], map: "idx_cameras_status")
   @@index([camera_type], map: "idx_cameras_type")
+  @@index([ip_address], map: "idx_cameras_ip_address")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -170,27 +171,29 @@ model fcm_tokens {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notifications {
-  notification_id                            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id                                    String            @db.Uuid
-  event_id                                   String?           @db.Uuid
+  notification_id                            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                    String                  @db.Uuid
+  event_id                                   String?                 @db.Uuid
   notification_type                          notif_type_enum
-  severity                                   severity_enum     @default(medium)
-  title                                      String?           @db.VarChar(255)
+  severity                                   severity_enum           @default(medium)
+  title                                      String?                 @db.VarChar(255)
   message                                    String
   delivery_data                              Json?
-  status                                     notif_status_enum @default(pending)
-  sent_at                                    DateTime?         @db.Timestamptz(6)
-  delivered_at                               DateTime?         @db.Timestamptz(6)
-  retry_count                                Int?              @default(0)
+  status                                     notif_status_enum       @default(pending)
+  sent_at                                    DateTime?               @db.Timestamptz(6)
+  delivered_at                               DateTime?               @db.Timestamptz(6)
+  retry_count                                Int?                    @default(0)
   error_message                              String?
-  read_at                                    DateTime?         @db.Timestamptz(6)
-  acknowledged_by                            String?           @db.Uuid
-  acknowledged_at                            DateTime?         @db.Timestamptz(6)
-  created_at                                 DateTime          @default(now()) @db.Timestamptz(6)
-  resolved_at                                DateTime?         @db.Timestamptz(6)
-  users_notifications_acknowledged_byTousers users?            @relation("notifications_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
-  event_detections                           event_detections? @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
-  users                                      users             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  read_at                                    DateTime?               @db.Timestamptz(6)
+  acknowledged_by                            String?                 @db.Uuid
+  acknowledged_at                            DateTime?               @db.Timestamptz(6)
+  created_at                                 DateTime                @default(now()) @db.Timestamptz(6)
+  resolved_at                                DateTime?               @db.Timestamptz(6)
+  channel                                    channel_enum?
+  business_type                              notification_type_enum?
+  users_notifications_acknowledged_byTousers users?                  @relation("notifications_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
+  event_detections                           event_detections?       @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  users                                      users                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([retry_count], map: "idx_notif_retry")
   @@index([sent_at], map: "idx_notif_sent")
@@ -278,6 +281,7 @@ model payments {
   version             String?               @db.VarChar(20)
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
   updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  status_enum         payment_status_enum?
   users               users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   subscription_events subscription_events[]
   transaction         transaction?
@@ -908,4 +912,57 @@ enum confirmation_state_enum {
   CONFIRMED_BY_CUSTOMER
   REJECTED_BY_CUSTOMER
   AUTO_APPROVED
+}
+
+enum access_grant_status_enum {
+  pending
+  accepted
+  rejected
+  revoked
+  expired
+}
+
+enum caregiver_invitation_status_enum {
+  pending
+  accepted
+  rejected
+  cancelled
+  expired
+}
+
+enum channel_enum {
+  email
+  sms
+  push
+  in_app
+  webhook
+}
+
+enum event_history_action_enum {
+  proposed
+  edited
+  confirmed
+  rejected
+  cancelled
+  auto_rejected
+  caregiver_invited
+  caregiver_assigned
+  abandoned
+}
+
+enum notification_type_enum {
+  event_alert
+  confirmation_request
+  caregiver_invitation
+  system_update
+  emergency_alert
+}
+
+enum payment_status_enum {
+  pending
+  processing
+  completed
+  failed
+  refunded
+  cancelled
 }
