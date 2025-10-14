@@ -8,6 +8,7 @@ import { EVENT_DETECTIONS_REPO } from './domain/repositories/event-detections.re
 import { PrismaEventDetectionsRepo } from './infra/prisma/event-detections.repo';
 import { EventDetectionsController } from './interface/event-detections.controller';
 import { FileManageService } from '../file-manage/application/file-manage.service';
+import { EventDetectionsScheduler } from './application/event-detections.scheduler';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { FileManageService } from '../file-manage/application/file-manage.servic
       inject: [PrismaService],
     },
     EventDetectionsService,
-    // EventDetectionsScheduler,
+    EventDetectionsScheduler,
     LmStudioService,
     FileManageService,
   ],

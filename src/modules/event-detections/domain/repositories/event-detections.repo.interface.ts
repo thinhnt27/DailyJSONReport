@@ -27,6 +27,11 @@ export interface IEventDetectionsRepo {
     habitFields?: string[]; // optional select
     ascending?: boolean; // true → trả theo thời gian tăng dần
   }): Promise<FetchResult>;
+
+  fetchEventsAndHabitsByRange(
+    from: Date | string,
+    to: Date | string,
+  ): Promise<FetchResult>;
 }
 
 // token to use for DI so implementations can be swapped

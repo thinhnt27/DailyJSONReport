@@ -191,6 +191,133 @@ export class FileManageService {
     return results;
   }
 
+  async saveAnalysesTriggerByUser(input: SaveByUserInput): Promise<
+    Array<{
+      userId: string;
+      date: string;
+      fullPath: string;
+      size: number;
+      checksum: string;
+      created: boolean;
+    }>
+  > {
+    if (!Array.isArray(input.items)) {
+      throw new BadRequestException('items must be an array');
+    }
+
+    // ---- Helpers cục bộ ----
+    const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+    const parseDdMmYyyyToVnDate = (s: string) => {
+      // chấp nhận 'dd/MM/yyyy' hoặc 'dd-MM-yyyy'
+      const sep = s.includes('/') ? '/' : '-';
+      const [dd, mm, yyyy] = s.split(sep).map((x) => x.trim());
+      return new Date(`${yyyy}-${pad2(+mm)}-${pad2(+dd)}T00:00:00+07:00`);
+    };
+    const formatHyphen = (d: Date) => {
+      // dd-MM-yyyy (cho TÊN FILE)
+      const vn = new Date(d.getTime()); // +07:00 đã ở Date gốc
+      const y = vn.getUTCFullYear();
+      const m = pad2(vn.getUTCMonth() + 1);
+      const day = pad2(vn.getUTCDate());
+      return `${day}-${m}-${y}`;
+    };
+    const formatSlash = (d: Date) => {
+      // dd/MM/yyyy (trường date trong payload)
+      const vn = new Date(d.getTime());
+      const y = vn.getUTCFullYear();
+      const m = pad2(vn.getUTCMonth() + 1);
+      const day = pad2(vn.getUTCDate());
+      return `${day}/${m}/${y}`;
+    };
+
+    // Lấy "ngày cơ sở" (theo input hoặc hiện tại), rồi lùi 1 ngày cho file
+    const inputDateStr =
+      input.date && DATE_DDMMYYYY.test(input.date)
+        ? input.date
+        : formatVNDateFolder(new Date()); // ví dụ '14/10/2025' hoặc '14-10-2025'
+
+    const baseDate =
+      input.date && DATE_DDMMYYYY.test(input.date)
+        ? parseDdMmYyyyToVnDate(inputDateStr)
+        : parseDdMmYyyyToVnDate(
+            // đảm bảo parse được cả formatVNDateFolder
+            inputDateStr.replace(/-/g, '/'),
+          );
+
+    const prevDate = new Date(baseDate.getTime() - 24 * 3600_000); // hôm trước
+    const fileDateStr = formatHyphen(prevDate); // '13-10-2025'
+    const payloadDateStr = formatSlash(prevDate); // '13/10/2025'
+
+    // group theo user_id
+    const byUser = new Map<string, unknown[]>();
+    for (const it of input.items) {
+      const uid = (it as { user_id?: unknown })?.user_id;
+      if (typeof uid !== 'string' || uid.length === 0) continue;
+      const key = sanitizeUserId(uid);
+      if (!byUser.has(key)) byUser.set(key, []);
+      byUser.get(key)!.push(it);
+    }
+
+    const results: Array<{
+      userId: string;
+      date: string;
+      fullPath: string;
+      size: number;
+      checksum: string;
+      created: boolean;
+    }> = [];
+
+    for (const [userId, arr] of byUser) {
+      const relPath = join('analyses', userId, `${fileDateStr}.json`); // <-- ngày HÔM TRƯỚC
+      const fullPath = join(this.baseDir, relPath);
+      await fs.mkdir(dirname(fullPath), { recursive: true });
+
+      let payload: unknown;
+      let created = false;
+
+      try {
+        const existBuf = await fs.readFile(fullPath);
+        const existText = existBuf.toString('utf-8');
+        const existParsed = JSON.parse(existText) as {
+          user_id?: unknown;
+          date?: unknown;
+          analyses?: unknown;
+        };
+        const existAnalyses: unknown[] = Array.isArray(existParsed?.analyses)
+          ? (existParsed.analyses as unknown[])
+          : [];
+
+        payload = {
+          user_id: userId,
+          date: payloadDateStr, // <-- date trong payload = ngày HÔM TRƯỚC (dd/MM/yyyy)
+          analyses: [...existAnalyses, ...arr],
+        };
+      } catch {
+        payload = {
+          user_id: userId,
+          date: payloadDateStr, // <-- ngày HÔM TRƯỚC
+          analyses: arr,
+        };
+        created = true;
+      }
+
+      const jsonBuf = Buffer.from(JSON.stringify(payload, null, 2), 'utf-8');
+      await fs.writeFile(fullPath, jsonBuf);
+
+      const checksum = createHash('sha256').update(jsonBuf).digest('hex');
+      results.push({
+        userId,
+        date: payloadDateStr, // trả ra luôn ngày payload cho tiện debug
+        fullPath,
+        size: jsonBuf.length,
+        checksum,
+        created,
+      });
+    }
+
+    return results;
+  }
+
   // ====== CÁC HÀM ĐỌC/TẢI CŨ: chỉnh theo layout mới ======
 
   /** Lấy đúng file theo user + ngày */

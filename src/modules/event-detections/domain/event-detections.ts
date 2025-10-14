@@ -154,3 +154,18 @@ export async function fetchLatestEventsAndPatientHabits(
 
   return returnResult;
 }
+
+export async function fetchEventsAndHabitsByRange(
+  repo: IEventDetectionsRepo,
+  from: Date | string, // ví dụ '2025-10-13 08:00:00+07:00' hoặc Date
+  to: Date | string, // ví dụ '2025-10-14 23:59:59+07:00' hoặc Date
+): Promise<FetchResult> {
+  const result = await repo.fetchEventsAndHabitsByRange(from, to);
+
+  // deep copy để có thể strip field giống hàm kia
+  const returnResult: FetchResult = JSON.parse(
+    JSON.stringify(result),
+  ) as FetchResult;
+
+  return returnResult;
+}
