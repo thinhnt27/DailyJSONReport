@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FileManageService } from '../application/file-manage.service';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('file-manage')
 export class FileReadController {
@@ -32,6 +33,15 @@ export class FileReadController {
    * → Trả danh sách file có tồn tại trong khoảng ngày (bỏ qua ngày không có file)
    */
   @Get('user-json-range')
+  @ApiQuery({ name: 'userId', type: String, required: true })
+  @ApiQuery({ name: 'from', type: String, required: true })
+  @ApiQuery({ name: 'to', type: String, required: true })
+  @ApiQuery({
+    name: 'includeData',
+    type: Boolean,
+    required: false,
+    example: false,
+  })
   async getUserJsonRange(
     @Query('userId') userId: string,
     @Query('from') from: string,
