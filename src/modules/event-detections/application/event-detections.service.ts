@@ -234,6 +234,31 @@ export class EventDetectionsService {
     }
   }
 
+  async fetchEventsAndAnalyzeByRangesTest(
+    from: string | Date,
+    to: string | Date,
+  ): Promise<any> {
+    const raw = await fetchEventsAndHabitsByRange(this.repo, from, to);
+    this.logger.log(`fetchEventsAndHabitsByRanges: ${JSON.stringify(raw)}`);
+    const events =
+      (raw['event-detections'] as Array<Record<string, unknown>>) ?? [];
+    const supplementMap =
+      (raw.supplement as Record<string, Record<string, unknown>>) ?? {};
+
+    const userIds = Array.from(
+      new Set(
+        events
+          .map((e) => e.user_id as string | undefined)
+          .filter((u): u is string => typeof u === 'string' && u.length > 0),
+      ),
+    );
+    const users = userIds.map((uid) => ({
+      user_id: uid,
+      'event-detections': events.filter((e) => (e.user_id as string) === uid),
+      supplement: supplementMap[uid] ?? null,
+    }));
+    return users;
+  }
   async fetchEventsAndHabitsByRanges(
     from: string | Date,
     to: string | Date,

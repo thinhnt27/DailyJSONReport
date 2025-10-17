@@ -56,4 +56,37 @@ export class EventDetectionsController {
     await this.service.fetchEventsAndAnalyzeToFile();
     return { status: 'ok', saved: true, at: new Date().toISOString() };
   }
+
+  private pad2(n: number) {
+    return n < 10 ? `0${n}` : `${n}`;
+  }
+
+  private getVnYmd(date = new Date()) {
+    // dịch sang giờ VN để lấy đúng *ngày* theo VN
+    const vn = new Date(date.getTime() + 7 * 3600_000);
+    const y = vn.getUTCFullYear();
+    const m = this.pad2(vn.getUTCMonth() + 1);
+    const d = this.pad2(vn.getUTCDate());
+    return { y, m, d };
+  }
+
+  /** Chuẩn hoá chuỗi 12h trưa cho một ngày (theo VN) */
+  private noonString(y: number, m: string | number, d: string | number) {
+    const mm = typeof m === 'number' ? this.pad2(m) : m;
+    const dd = typeof d === 'number' ? this.pad2(d) : d;
+    return `${y}-${mm}-${dd} 12:00:00+07:00`;
+  }
+  @Get('test-data')
+  getTestData(): Promise<any> {
+    const { y, m, d } = this.getVnYmd();
+    const toStr = this.noonString(y, m, d);
+
+    // "Hôm qua" theo VN: tạo Date từ chuỗi toStr rồi trừ 1 ngày
+    const toDate = new Date(`${toStr.replace(' ', 'T')}`); // => 2025-10-14T12:00:00+07:00
+    const fromDate = new Date(toDate.getTime() - 24 * 3600_000);
+
+    const { y: fy, m: fm, d: fd } = this.getVnYmd(fromDate);
+    const fromStr = this.noonString(fy, fm, fd);
+    return this.service.fetchEventsAndAnalyzeByRangesTest(fromStr, toStr);
+  }
 }
