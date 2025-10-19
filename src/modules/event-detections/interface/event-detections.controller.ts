@@ -9,27 +9,27 @@ import { AiUserAnalysisV2 } from '@/modules/lm-studio/interface/dto/ai-user-anal
 export class EventDetectionsController {
   constructor(private readonly service: EventDetectionsService) {}
 
-  @Get()
-  fetchEventsAndHabits(
-    @Query() query: FetchEventsQueryDto,
-  ): Promise<FetchResult> {
-    // Convert string query params to proper types
-    const limit = query.limit ? Number(query.limit) : undefined;
-    const page = query.page ? Number(query.page) : undefined;
-    const fetchAll =
-      query.fetchAll === true ||
-      (query.fetchAll as unknown as string) === 'true';
+  // @Get()
+  // fetchEventsAndHabits(
+  //   @Query() query: FetchEventsQueryDto,
+  // ): Promise<FetchResult> {
+  //   // Convert string query params to proper types
+  //   const limit = query.limit ? Number(query.limit) : undefined;
+  //   const page = query.page ? Number(query.page) : undefined;
+  //   const fetchAll =
+  //     query.fetchAll === true ||
+  //     (query.fetchAll as unknown as string) === 'true';
 
-    return this.service.fetchEventsAndHabits(query.endDate, {
-      limit,
-      page,
-      eventFields: query.eventFields,
-      habitFields: query.habitFields,
-      saveToFile: query.saveToFile,
-      filename: query.filename,
-      fetchAll,
-    });
-  }
+  //   return this.service.fetchEventsAndHabits(query.endDate, {
+  //     limit,
+  //     page,
+  //     eventFields: query.eventFields,
+  //     habitFields: query.habitFields,
+  //     saveToFile: query.saveToFile,
+  //     filename: query.filename,
+  //     fetchAll,
+  //   });
+  // }
 
   @Get('analyze')
   async analyze(): Promise<AiUserAnalysisV2[]> {
