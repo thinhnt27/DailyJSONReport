@@ -1,0 +1,132 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "19-10-2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "1970-01-01T00:00:00.000Z",
+          "end_time": "1970-01-01T00:00:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Bình thường – Giấc ngủ ổn định, không có bất thường trong thời gian ngủ/thức. Không đủ dữ liệu bệnh sử để tham chiếu.",
+          "actionSuggestion": "Tham khảo lịch sử bệnh và thói quen của bệnh nhân"
+        },
+        {
+          "start_time": "1970-01-01T14:00:00.000Z",
+          "end_time": "1970-01-01T22:00:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức ổn định và đã được quản lý tốt các bệnh lý trước đây. However, trong ngày hôm nay có một sự kiện bất thường cần caregiver xem lại.",
+          "actionSuggestion": "Cung cấp thêm y tế chuyên môn để theo dõi và rà soát hành vi này."
+        },
+        {
+          "start_time": "1970-01-01T14:00:00.000Z",
+          "end_time": "1970-01-01T22:00:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức hợp lý, tuy nhiên đã phát hiện hành vi bất thường cần caregiver xem lại.",
+          "actionSuggestion": "Cần theo dõi và kiểm tra thêm."
+        },
+        {
+          "start_time": "2025-09-09T00:00:00.000Z",
+          "end_time": "2025-09-09T15:56:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức ổn định, nhưng đã phát hiện ngã trong ngày với độ tin cậy 76%. Nên theo dõi thêm camera.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-09-09T00:00:00.000Z",
+          "end_time": "2025-09-09T23:59:59.999Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thể trạng tốt, thói quen ngủ – thức ổn định nhưng phát hiện một sự kiện cảnh báo về ngã xe. Vui lòng theo dõi thêm camera và tham khảo lịch sử bệnh để có những lời khuyên hợp lí.",
+          "actionSuggestion": "Theo dõi camera thêm, rà soát thói quen ngủ – thức, tham khảo lịch sử bệnh."
+        },
+        {
+          "start_time": "2025-09-11T14:00:00.000Z",
+          "end_time": "1970-01-01T02:38:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức ổn định. Cảnh báo về hành vi bất thường tại 21:38. ",
+          "actionSuggestion": "Phát hiện hành vi bất thường cần caregiver xem lại."
+        },
+        {
+          "start_time": "2025-09-13T00:00:00.000Z",
+          "end_time": "2025-09-13T07:36:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ ngã cao vào ngày 13/09/2025, cần được kiểm tra ngay lập tức.",
+          "actionSuggestion": "Liên hệ với bác sĩ để được hướng dẫn thêm."
+        },
+        {
+          "start_time": "2025-09-15T00:00:00.000Z",
+          "end_time": "2025-09-15T13:06:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức ổn định, nhưng đã phát hiện 1 sự kiện cảnh báo về ngã. Nên theo dõi thêm camera và duy trì sức khỏe tim mạch. Tuy nhiên, không đủ dữ liệu bệnh sử để tham chiếu.",
+          "actionSuggestion": "Theo dõi thêm camera, duy trì sức khỏe tim mạch, kiểm tra thói quen ngủ – thức."
+        },
+        {
+          "start_time": "2025-09-17T14:00:00.000Z",
+          "end_time": "2025-09-18T06:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơ thể người có nhu cầu ngủ khoảng 8 – 10 giờ/ngày. Ngủ đủ thời gian giúp cho cơ thể phục hồi, xây dựng lại các tế bào, cải thiện sức khỏe và tăng cường khả năng hoạt động. Tuy nhiên, thói quen ngủ – thức của John Patient hiện tại không phù hợp với nhu cầu này. John Patient thường đi ngủ lúc 22:00 và thức dậy lúc 06:00, gây stress cho hệ thống tim mạch. Do đó, cần phải thay đổi thói quen ngủ – thức để đáp ứng nhu cầu cơ thể.",
+          "actionSuggestion": "Hãy thay đổi thói quen ngủ – thức để đáp ứng nhu cầu cơ thể"
+        },
+        {
+          "start_time": "2025-09-17T20:00:00.000Z",
+          "end_time": "2025-09-18T02:44:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ cao do lịch sử bệnh tim mạch và rối loạn giấc ngủ, hệ thống cảm biến đã phát hiện tình huống khẩn cấp vào 03:44 ngày 18/09/2025.",
+          "actionSuggestion": "The patient should be monitored closely and have their sleep patterns checked regularly."
+        },
+        {
+          "start_time": "2025-09-19T18:00:00.000Z",
+          "end_time": "1970-01-01T14:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ – thức không ổn định, có thể gây stress cho cơ thể. Cảnh báo về nguy hiểm của thói quen này và cần được theo dõi.",
+          "actionSuggestion": "Khuyến cáo bệnh nhân nên đi ngủ trước 22:00 để có thời gian nghỉ ngơi hợp lý."
+        },
+        {
+          "start_time": "2025-09-21T00:00:00.000Z",
+          "end_time": "2025-09-22T23:59:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cảnh báo: Bất thường trong thói quen - Giấc ngủ không ổn định.",
+          "actionSuggestion": "The caregiver should monitor the patient's sleep patterns more closely to ensure they are sleeping within a healthy range."
+        },
+        {
+          "start_time": "2025-09-23T06:00:00.000Z",
+          "end_time": "2025-09-23T13:18:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ lúc 22:00, thức dậy lúc 06:00 để duy trì sức khỏe tim mạch. Vào ngày 23/09/2025, đã phát hiện hành vi bất thường – Cảnh báo với độ tin cậy 78%. Mức độ trong ngày là cảnh báo. Không có dữ liệu bệnh sử để tham chiếu.",
+          "actionSuggestion": "Khuyến cáo: Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-09-23T14:00:00.000Z",
+          "end_time": "1970-01-01T02:30:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cảm biến phát hiện cảnh báo khẩn cấp do thói quen không phù hợp. Thời gian ngủ và thức dậy không ổn định có thể ảnh hưởng đến sức khỏe tim mạch. Khuyến cáo nên điều chỉnh thói quen để duy trì sức khỏe.",
+          "actionSuggestion": "Khuyến cáo thay đổi thói quen, theo dõi và kiểm tra lại bệnh sử"
+        },
+        {
+          "start_time": "2025-09-27T02:14:00.000Z",
+          "end_time": "2025-09-27T02:14:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy hiểm cao do tình hình sức khỏe tim mạch; khuyến cáo việc kiểm soát diet và tập thể dục thường xuyên để giảm thiểu rủi ro.",
+          "actionSuggestion": "Tham gia chương trình kiểm soát diet và tập thể dục thường xuyên."
+        },
+        {
+          "start_time": "2025-09-27T02:26:00.000Z",
+          "end_time": "1970-01-01T14:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ lúc 22:00 – 06:00, đã được xác nhận là cảnh báo về ngã; tuy nhiên, không đủ dữ liệu để so sánh giờ ngủ mô tả và giờ số.",
+          "actionSuggestion": "Theo dõi thêm camera, khuyến cáo bệnh nhân phải tăng cường an toàn cho gia đình"
+        },
+        {
+          "start_time": "2025-09-28T01:18:00.000Z",
+          "end_time": "1970-01-01T14:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ lúc 22:00, thức dậy lúc 06:00 để duy trì sức khỏe tim mạch. Trong ngày, phát hiện hành vi bất thường – Độ tin cậy 88% | Thời gian 01:18 28/09/2025 | Ghi chú: Phát hiện hành vi bất thường cần caregiver xem lại.",
+          "actionSuggestion": "Phát hiện hành vi bất thường cần caregiver xem lại và theo dõi."
+        }
+      ],
+      "mostActivePeriod": "07:00-06:59",
+      "mostAbnormalPeriod": "07:00-14:36"
+    }
+  ]
+}

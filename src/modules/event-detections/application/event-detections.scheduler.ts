@@ -44,19 +44,19 @@ export class EventDetectionsScheduler {
   //   }
 
   // Test cron: chạy mỗi 5 giây
-  @Cron('*/5 * * * * *') // <-- mỗi 5 giây
-  handleTestCron() {
-    this.logger.log('Test cron running every 5s');
-    const { y, m, d } = this.getVnYmd();
-    const toStr = this.noonString(y, m, d);
+  // @Cron('*/5 * * * * *') // <-- mỗi 5 giây
+  // handleTestCron() {
+  //   this.logger.log('Test cron running every 5s');
+  //   const { y, m, d } = this.getVnYmd();
+  //   const toStr = this.noonString(y, m, d);
 
-    // "Hôm qua" theo VN: tạo Date từ chuỗi toStr rồi trừ 1 ngày
-    const toDate = new Date(`${toStr.replace(' ', 'T')}`); // => 2025-10-14T12:00:00+07:00
-    const fromDate = new Date(toDate.getTime() - 24 * 3600_000);
-    this.logger.log(
-      `Test cron: from=${fromDate.toISOString()} to=${toDate.toISOString()}`,
-    );
-  }
+  //   // "Hôm qua" theo VN: tạo Date từ chuỗi toStr rồi trừ 1 ngày
+  //   const toDate = new Date(`${toStr.replace(' ', 'T')}`); // => 2025-10-14T12:00:00+07:00
+  //   const fromDate = new Date(toDate.getTime() - 24 * 3600_000);
+  //   this.logger.log(
+  //     `Test cron: from=${fromDate.toISOString()} to=${toDate.toISOString()}`,
+  //   );
+  // }
 
   /** Utils: tạo chuỗi 'YYYY-MM-DD 12:00:00+07:00' cho hôm nay/hôm qua theo giờ VN */
   private pad2(n: number) {
