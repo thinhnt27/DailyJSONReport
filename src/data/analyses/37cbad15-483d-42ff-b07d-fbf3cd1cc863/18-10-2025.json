@@ -1,0 +1,42 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "18/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-20T01:56:36.819Z",
+          "end_time": "2025-10-20T01:56:36.819Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có dấu hiệu co giật và cảnh báo khẩn cấp; cần theo dõi sát.",
+          "actionSuggestion": "Theo dõi bệnh nhân, chuẩn bị các biện pháp khẩn cấp."
+        },
+        {
+          "start_time": "2025-10-20T02:22:40.377Z",
+          "end_time": "2025-10-20T02:22:40.377Z",
+          "status": "Warning",
+          "aiSummary": "Nguyen nguroi co biet xay ra su kien can theodoi trong ngay 2025-10-20; Description: John Patient is a 35-year-old male who sleeps at 22:30 and wakes up at 06:30; Status: Warning. Please pay attention to his abnormal behavior today. Based on medical history, he might have some health issues that need checking. Please refer to the doctor for further examination.",
+          "actionSuggestion": "Please check with the doctor for John Patient's sleep patterns and medical history."
+        },
+        {
+          "start_time": "2025-10-20T02:40:28.627Z",
+          "end_time": "2025-10-20T02:40:28.627Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân đã có một sự kiện động kinh cấp tính và đã được xác nhận. Thói quen ngủ của bệnh nhân là ngủ trưa hoặc tối theo lịch. Bệnh sử hiện tại chưa có dữ liệu.",
+          "actionSuggestion": "Khám bệnh để kiểm tra tình trạng sức khỏe, tuân thủ thói quen ngủ."
+        },
+        {
+          "start_time": "2025-10-20T03:03:33.943Z",
+          "end_time": "2025-10-20T03:03:33.943Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa, ngủ tối theo lịch. Vào ngày 20/10/2025, bệnh nhân có cử chỉ bất thường - Bất thường nhẹ, một người có cử chỉ khác lạ. Tuy nhiên, không có dữ liệu thể trạng và bệnh sử để tham chiếu.",
+          "actionSuggestion": "Theo dõi thói quen ngủ/thức, kiểm tra lại giờ ngủ/thức, liên hệ với lịch sử bệnh."
+        }
+      ],
+      "mostActivePeriod": "08:56-08:56",
+      "mostAbnormalPeriod": "09:40-09:40",
+      "suggest_summary_daily": "Bệnh nhân có thói quen ngủ trưa hay tối, giờ ngủ 22:30 - 06:30, có dấu hiệu co giật; không đủ dữ liệu bệnh sử. 7 ngày gần đây từng xuất hiện 1 ngày có ngã. Chưa có dữ liệu lịch sử để so sánh."
+    }
+  ]
+}

@@ -430,6 +430,9 @@ export class EventDetectionsService {
       const uid = r.user_id ?? 'unknown';
       (byUser.get(uid) ?? byUser.set(uid, []).get(uid)!).push(r);
     }
+    this.logger.log(
+      `Grouped results by user: ${JSON.stringify(Array.from(byUser.keys()))} users`,
+    );
 
     // Fold từng nhóm → AiUserAnalysisV2[]
     const resultsV2: AiUserAnalysisV2[] = [];
@@ -437,6 +440,7 @@ export class EventDetectionsService {
       const folded: AiUserAnalysisV2 = foldUserAnalysesToV2(arr);
       resultsV2.push(folded);
     }
+    this.logger.log(`Folded resultsV2: ${JSON.stringify(resultsV2)}`);
 
     // === Helpers ngày theo Asia/Ho_Chi_Minh ===
     const formatVN_ddMMyyyy = (d: Date) =>

@@ -319,6 +319,7 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
             gte: from, // >= from
             lte: to, // <= to (nếu muốn nửa mở, đổi thành lt: to)
           },
+          AND: { confidence_score: { gte: 0.8 } },
         },
         orderBy: { detected_at: 'desc' },
         // bỏ take để trả full kết quả trong range (giữ lại nếu muốn giới hạn)
