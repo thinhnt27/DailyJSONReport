@@ -87,6 +87,6 @@ export class EventDetectionsController {
 
     const { y: fy, m: fm, d: fd } = this.getVnYmd(fromDate);
     const fromStr = this.noonString(fy, fm, fd);
-    return this.service.fetchEventsAndAnalyzeByRangesTest(fromStr, toStr);
+    return this.service.fetchEventsAndHabitsByRangesV2(fromStr, toStr);
   }
 }

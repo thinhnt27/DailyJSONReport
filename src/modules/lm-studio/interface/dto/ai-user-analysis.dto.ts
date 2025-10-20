@@ -11,3 +11,8 @@ export interface AiUserAnalysis {
   aiSummary: string;
   actionSuggestion: string;
 }
+
+export type DailyReportSummary = {
+  user_id: string; // dd-MM-yyyy cho date
+  suggest_summary_daily: string;
+};

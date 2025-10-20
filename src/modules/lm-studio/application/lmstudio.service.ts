@@ -1,9 +1,13 @@
 // src/modules/event-detections/application/lmstudio.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
-import type { AiUserAnalysis } from '../interface/dto/ai-user-analysis.dto';
+import type {
+  AiUserAnalysis,
+  DailyReportSummary,
+} from '../interface/dto/ai-user-analysis.dto';
 // import type { FetchResult } from '@/modules/event-detections/domain/repositories/event-detections.repo.interface';
 import { OutputBatch } from '@/modules/event-detections/application/helpers/batch-group.helper';
+import { LMStudioRangePayloadA } from '../interface/dto/ai-user-analysis.v2.dto';
 
 @Injectable()
 export class LmStudioService {
@@ -234,4 +238,172 @@ Mỗi bệnh nhân là 1 object trong mảng JSON:
       this.logger.log('LM Studio request end');
     }
   }
+
+  async analyzeEventDataV2(
+    payload: LMStudioRangePayloadA,
+  ): Promise<DailyReportSummary> {
+    const systemPrompt = `
+Bạn là hệ thống AI giám sát và phân tích hành vi bệnh nhân trong 24 giờ gần nhất.  
+Mục tiêu của bạn là **tóm tắt và đánh giá xu hướng tiền đột quỵ hoặc bất thường vận động** dựa trên dữ liệu hiện tại (today) và lịch sử 7 ngày trước (history).  
+Kết quả trả về phải **DUY NHẤT MỘT OBJECT JSON hợp lệ 100%** gồm 2 trường: 'user_id' và 'suggest_summary_daily'.  
+Tuyệt đối không được trả về mảng hoặc văn bản ngoài JSON.  
+Tất cả câu phải **bằng tiếng Việt**, không xen tiếng Anh, không chứa ký tự kỹ thuật hoặc dấu \\\`|\\\`.
+
+### 1 Cấu trúc dữ liệu đầu vào
+
+Payload bao gồm:
+- **user_id**: mã định danh của bệnh nhân.
+- **window**: '{ from, to }' (dd-MM-yyyy) – phạm vi thời gian được phân tích.
+- **today**: '{ date, analyses: AiUserAnalysisV2[] }' – dữ liệu hành vi của ngày hiện tại, đã tổng hợp từ các sự kiện (té ngã, co giật, bất thường, giấc ngủ, thói quen).
+- **history**: 'DayDoc[]' – danh sách 7 ngày gần nhất trước đó, cùng cấu trúc như 'today'.
+
+Mỗi phần tử trong 'analyses' có:  
+'dailyActivityLog[]' gồm 'start_time', 'end_time', 'status' (Normal | Warning | Danger), 'aiSummary', 'actionSuggestion'.  
+
+---
+
+### 2 Kiến thức chuyên môn: Tiền đột quỵ và cách diễn giải dữ liệu theo chuỗi (today + history)
+
+#### 2.1. Té Ngã (Falling)
+- Té ngã thường là **hậu quả trực tiếp** của đột quỵ khởi phát (mất thăng bằng, yếu chi, gục ngã đột ngột).  
+- Trong giai đoạn “ủ bệnh”, có thể xuất hiện **các cơn thiếu máu não thoáng qua (TIA)** vài ngày trước, gây **chóng mặt hoặc mất thăng bằng thoáng qua**, làm tăng nguy cơ té ngã.  
+- Nếu **hôm nay có té ngã hợp lệ** và **trong 7 ngày trước đó (history)** có các sự kiện té ngã dựa theo aiSummary trong list history lặp lại → coi là **xu hướng bất thường tái diễn** → cảnh báo tăng nguy cơ.
+
+#### 2.2. Co Giật (Seizure)
+- Co giật là dấu hiệu **nguy hiểm cấp tính**, đôi khi xuất hiện khi **đột quỵ xuất huyết** hoặc do **bệnh lý nền thần kinh**.  
+- Nếu **today có co giật hợp lệ** và **history cũng có co giật hoặc bất thường liên quan**, → đánh giá là **chuỗi nguy cơ cao**, cần theo dõi sát.  
+- Nếu chỉ xuất hiện hôm nay, nhưng **7 ngày trước bình thường** → nêu rõ cần xác minh, theo dõi thêm.
+
+#### 2.3. So sánh hành vi theo thời gian
+- Nếu **nhiều ngày liên tiếp** xuất hiện cùng loại sự kiện nguy hiểm → “xu hướng tái diễn liên tục”.  
+- Nếu chỉ hôm nay bất thường, nhưng **7 ngày trước bình thường** → “sự kiện đơn lẻ, cần theo dõi thêm”.  
+- Nếu **hôm nay bình thường**, nhưng **history có bất thường** → “dấu hiệu cải thiện”.  
+- Mục tiêu là nhận diện **xu hướng hành vi** (ổn định / tăng nguy cơ / cải thiện) chứ không chẩn đoán y khoa.
+
+---
+
+### 3 Yêu cầu khi viết 'suggest_summary_daily'
+- Viết 1–3 câu, tự nhiên, súc tích, rõ ràng.  
+- **Câu 1:** Tóm tắt trạng thái nổi bật trong 24 giờ qua (té ngã, co giật, hoặc không có sự kiện).  
+- **Câu 2:** So sánh với lịch sử 7 ngày ('history') – mô tả xu hướng tăng, giảm hoặc lặp lại, nếu là các ngày liên tiếp tới hiện tại thì phải nói đang bị liên tục.  
+- **Câu 3 (tuỳ chọn):** Liên hệ hợp lý với bệnh sử hoặc thói quen ngủ/thức nếu có dữ liệu trong các dailyActivityLog[] phần aiSummary trong 'analyses' của field 'today'.  
+- Không nêu tên riêng, giới tính, hay từ ngữ chuyên khoa.  
+- Không chẩn đoán. Chỉ dùng các cụm: “có xu hướng tái diễn”, “ổn định hơn”, “giảm dần”, “cần theo dõi thêm”, “nên kiểm tra lại camera”, “đối chiếu với bệnh sử”.
+
+---
+
+### 4 Đầu ra JSON bắt buộc
+
+Kết quả trả về phải là **duy nhất một object JSON**, dạng:
+
+{
+  "user_id": "string",
+  "suggest_summary_daily": "string"
+}
+
+----
+`.trim();
+
+    const responseSchema: OpenAI.ResponseFormatJSONSchema = {
+      type: 'json_schema',
+      json_schema: {
+        name: 'daily_suggest_summary_v2',
+        schema: {
+          type: 'object',
+          properties: {
+            user_id: { type: 'string' },
+            suggest_summary_daily: { type: 'string' },
+          },
+          required: ['user_id', 'suggest_summary_daily'],
+          additionalProperties: false,
+        },
+      },
+    };
+
+    this.logger.log('LM Studio request start → model call');
+    try {
+      const completion = await this.client.chat.completions.create({
+        model: process.env.LM_MODEL ?? 'medgemma-4b-it',
+        temperature: 0.2,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: JSON.stringify(payload) },
+        ],
+        response_format: responseSchema,
+        // max_tokens: 512, // mở nếu cần giới hạn
+      });
+
+      this.logger.log('LM Studio response received');
+      const raw = completion.choices?.[0]?.message?.content ?? '{}';
+      this.logger.debug(`Raw response: ${raw.slice(0, 300)}...`);
+
+      // Cắt JSON phòng khi model “lỡ” in thêm kí tự
+      const first = raw.indexOf('{');
+      const last = raw.lastIndexOf('}');
+      const jsonText =
+        first >= 0 && last > first ? raw.slice(first, last + 1) : raw;
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        this.logger.error(`LM Studio JSON parse failed: ${msg}`);
+        throw new Error('Invalid JSON returned by LM Studio model');
+      }
+
+      // Thu hẹp kiểu an toàn, không dùng any
+      let doc: DailyReportSummary;
+
+      if (isDayDocLike(parsed)) {
+        // Model trả đúng 2 field
+        doc = {
+          user_id: parsed.user_id,
+          suggest_summary_daily: parsed.suggest_summary_daily,
+        };
+      } else if (
+        isJsonObject(parsed) &&
+        typeof parsed.suggest_summary_daily === 'string'
+      ) {
+        // Model quên user_id → vá bằng payload.user_id
+        doc = {
+          user_id: payload.user_id,
+          suggest_summary_daily: parsed.suggest_summary_daily,
+        };
+      } else {
+        // Không khớp schema → ném lỗi có log rõ ràng
+        this.logger.error(
+          `LM Studio response does not match { user_id: string, suggest_summary_daily: string }. Got: ${jsonText.slice(0, 200)}...`,
+        );
+        throw new Error('Response does not match expected DayDoc schema');
+      }
+
+      return doc;
+    } catch (err) {
+      if (err instanceof Error) {
+        this.logger.error(err.message, err.stack);
+      } else {
+        this.logger.error(String(err));
+      }
+      throw err;
+    } finally {
+      this.logger.log('LM Studio request end');
+    }
+  }
+}
+
+type JsonObject = Record<string, unknown>;
+
+function isJsonObject(x: unknown): x is JsonObject {
+  return typeof x === 'object' && x !== null && !Array.isArray(x);
+}
+
+function isDayDocLike(
+  x: unknown,
+): x is { user_id: string; suggest_summary_daily: string } {
+  return (
+    isJsonObject(x) &&
+    typeof x.user_id === 'string' &&
+    typeof x.suggest_summary_daily === 'string'
+  );
 }

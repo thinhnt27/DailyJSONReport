@@ -17,4 +17,18 @@ export interface AiUserAnalysisV2 {
   mostActivePeriod?: string; // "HH:mm-HH:mm"
   mostAbnormalPeriod?: string; // "HH:mm-HH:mm"
   mostAbnormalEventType?: string;
+  suggest_summary_daily?: string;
 }
+
+export type DayDoc = {
+  user_id: string; // dd-MM-yyyy cho date
+  date: string;
+  analyses: AiUserAnalysisV2[];
+};
+
+export type LMStudioRangePayloadA = {
+  user_id: string;
+  window: { from: string; to: string }; // dd-MM-yyyy
+  today: DayDoc; // hôm nay
+  history: DayDoc[]; // 7 ngày trước
+};
