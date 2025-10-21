@@ -30,5 +30,10 @@ export type LMStudioRangePayloadA = {
   user_id: string;
   window: { from: string; to: string }; // dd-MM-yyyy
   today: DayDoc; // hôm nay
-  history: DayDoc[]; // 7 ngày trước
+  history: DailySummary[]; // 7 ngày trước
 };
+
+export interface DailySummary {
+  date: string; // dd-MM-yyyy
+  suggest_summary_daily: string;
+}

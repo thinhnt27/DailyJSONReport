@@ -7,6 +7,7 @@ import {
 import { createReadStream, promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { randomUUID, createHash } from 'crypto';
+import { Debug } from '@prisma/client/runtime/library';
 
 export type SaveJsonInput = {
   subdir?: string; // vẫn dùng được nếu bạn còn cần
@@ -207,44 +208,60 @@ export class FileManageService {
 
     // ---- Helpers cục bộ ----
     const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-    const parseDdMmYyyyToVnDate = (s: string) => {
-      // chấp nhận 'dd/MM/yyyy' hoặc 'dd-MM-yyyy'
+    // const parseDdMmYyyyToVnDate = (s: string) => {
+    //   // chấp nhận 'dd/MM/yyyy' hoặc 'dd-MM-yyyy'
+    //   const sep = s.includes('/') ? '/' : '-';
+    //   const [dd, mm, yyyy] = s.split(sep).map((x) => x.trim());
+    //   return new Date(`${yyyy}-${pad2(+mm)}-${pad2(+dd)}T00:00:00+07:00`);
+    // };
+    const parseDdMmYyyyToUtcDate = (s: string): Date => {
       const sep = s.includes('/') ? '/' : '-';
       const [dd, mm, yyyy] = s.split(sep).map((x) => x.trim());
-      return new Date(`${yyyy}-${pad2(+mm)}-${pad2(+dd)}T00:00:00+07:00`);
+      // Tạo date ở 00:00 UTC (không theo local time)
+      return new Date(
+        Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), 0, 0, 0),
+      );
     };
-    const formatHyphen = (d: Date) => {
-      // dd-MM-yyyy (cho TÊN FILE)
-      const vn = new Date(d.getTime()); // +07:00 đã ở Date gốc
-      const y = vn.getUTCFullYear();
-      const m = pad2(vn.getUTCMonth() + 1);
-      const day = pad2(vn.getUTCDate());
+
+    /**
+     * Format theo dd-MM-yyyy (UTC)
+     */
+    const formatHyphen = (d: Date): string => {
+      const y = d.getUTCFullYear();
+      const m = pad2(d.getUTCMonth() + 1);
+      const day = pad2(d.getUTCDate());
       return `${day}-${m}-${y}`;
     };
-    const formatSlash = (d: Date) => {
-      // dd/MM/yyyy (trường date trong payload)
-      const vn = new Date(d.getTime());
-      const y = vn.getUTCFullYear();
-      const m = pad2(vn.getUTCMonth() + 1);
-      const day = pad2(vn.getUTCDate());
+
+    /**
+     * Format theo dd/MM/yyyy (UTC)
+     */
+    const formatSlash = (d: Date): string => {
+      const y = d.getUTCFullYear();
+      const m = pad2(d.getUTCMonth() + 1);
+      const day = pad2(d.getUTCDate());
       return `${day}/${m}/${y}`;
     };
 
-    // Lấy "ngày cơ sở" (theo input hoặc hiện tại), rồi lùi 1 ngày cho file
+    /**
+     * Lấy ngày cơ sở (UTC), mặc định = ngày hiện tại UTC
+     */
     const inputDateStr =
       input.date && DATE_DDMMYYYY.test(input.date)
         ? input.date
-        : formatVNDateFolder(new Date()); // ví dụ '14/10/2025' hoặc '14-10-2025'
+        : formatSlash(new Date()); // dd/MM/yyyy theo UTC hiện tại
 
+    // Parse thành Date UTC
     const baseDate =
       input.date && DATE_DDMMYYYY.test(input.date)
-        ? parseDdMmYyyyToVnDate(inputDateStr)
-        : parseDdMmYyyyToVnDate(
-            // đảm bảo parse được cả formatVNDateFolder
-            inputDateStr.replace(/-/g, '/'),
-          );
+        ? parseDdMmYyyyToUtcDate(inputDateStr)
+        : parseDdMmYyyyToUtcDate(inputDateStr.replace(/-/g, '/'));
 
-    const prevDate = new Date(baseDate.getTime() - 24 * 3600_000); // hôm trước
+    // Lùi 1 ngày theo UTC
+    const prevDate = new Date(baseDate.getTime() - 24 * 3600_000);
+    Debug.log(
+      `saveAnalysesTriggerByUser: baseDate=${baseDate.toISOString()}, prevDate=${prevDate.toISOString()}`,
+    );
     const fileDateStr = formatHyphen(prevDate); // '13-10-2025'
     const payloadDateStr = formatSlash(prevDate); // '13/10/2025'
 

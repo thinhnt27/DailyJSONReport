@@ -18,6 +18,7 @@ import {
 } from '@/modules/lm-studio/interface/dto/ai-user-analysis.dto';
 import {
   AiUserAnalysisV2,
+  DailySummary,
   DayDoc,
   LMStudioRangePayloadA,
 } from '@/modules/lm-studio/interface/dto/ai-user-analysis.v2.dto';
@@ -484,14 +485,32 @@ export class EventDetectionsService {
       Debug.log(`Found ${files.length} history files for user=${uid}`);
 
       // 2) Chuẩn hoá history → DayDoc[] (bỏ ngày không có file)
-      const history: DayDoc[] = files
+      // const history: DayDoc[] = files
+      //   .filter((f) => !!f.data)
+      //   .map((f) => {
+      //     const d = normalizeDate(f.data!.date);
+      //     const analyses = f.data!.analyses ?? [];
+      //     return { user_id: uid, date: d, analyses };
+      //   })
+      //   .sort((a, b) => a.date.localeCompare(b.date));
+
+      const history: DailySummary[] = files
         .filter((f) => !!f.data)
         .map((f) => {
           const d = normalizeDate(f.data!.date);
-          const analyses = f.data!.analyses ?? [];
-          return { user_id: uid, date: d, analyses };
+          const suggest_summary_daily =
+            f
+              .data!.analyses.slice()
+              .reverse()
+              .find((a) => !!a.suggest_summary_daily)?.suggest_summary_daily ??
+            '';
+          return { date: d, suggest_summary_daily };
         })
         .sort((a, b) => a.date.localeCompare(b.date));
+
+      this.logger.debug(
+        `User=${uid} history summaries: ${JSON.stringify(history)}`,
+      );
 
       // 3) Hôm nay dùng ngay V2 vừa fold xong
       const todayDoc: DayDoc = {
