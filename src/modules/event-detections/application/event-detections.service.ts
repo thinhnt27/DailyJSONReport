@@ -529,10 +529,10 @@ export class EventDetectionsService {
 
       const resp = await this.lmStudio.analyzeEventDataV2(a);
       this.logger.debug(
-        `LMStudio payload sent (user=${uid}): ${JSON.stringify(a).slice(0, 1000)}...`,
+        `LMStudio payload sent (user=${uid}): ${JSON.stringify(a)}...`,
       );
       this.logger.debug(
-        `LMStudio response (user=${uid}): ${JSON.stringify(resp).slice(0, 1000)}...`,
+        `LMStudio response (user=${uid}): ${JSON.stringify(resp)}...`,
       );
 
       // Kiểm tra type an toàn

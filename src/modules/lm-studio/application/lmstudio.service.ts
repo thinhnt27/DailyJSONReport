@@ -259,7 +259,7 @@ và nội dung phải **100% tiếng Việt**, không xen tiếng Anh, không k�
 
 ---
 
-### 1️⃣ Cấu trúc dữ liệu đầu vào
+### 1️ Cấu trúc dữ liệu đầu vào
 
 Payload bao gồm:
 - 'user_id': mã bệnh nhân  
@@ -273,7 +273,7 @@ Mỗi phần tử 'AiUserAnalysisV2' có 'dailyActivityLog[]', chứa các trư�
 
 ---
 
-### 2️⃣ Quy tắc diễn giải
+### 2️ Quy tắc diễn giải
 
 #### 2.1. Nguyên tắc trung thực  
 - Chỉ sử dụng **nội dung thật** có trong 'aiSummary' hoặc 'actionSuggestion'.  
@@ -294,37 +294,25 @@ Phân tích dữ liệu theo logic sau:
 
 > **Chú ý:** Chỉ áp dụng những kết luận này khi trong lịch sử *thực sự có bằng chứng tương ứng* (các từ khóa hoặc trạng thái xuất hiện rõ ràng).
 
----
+### 3 Ràng buộc quan trọng
+- Không lặp lại nguyên văn 'suggest_summary_daily' của các ngày trước.
+- Không thêm thông tin mới không có trong dữ liệu.
+- 'suggest_summary_daily' của các ngày trước mang tính chất kham khảo đối chiếu, đưa ra những cảnh báo nặng hơn hoặc nhẹ hơn so với ngày hiện tại dựa trên dữ liệu thật.
 
-### 3️⃣ Cách viết 'suggest_summary_daily'
 
-Viết ngắn gọn, rõ ràng, tối đa 3–4 câu theo mẫu:
+### 4 Cách viết 'suggest_summary_daily'
 
-1. **Câu 1:** Tóm tắt sự kiện chính hôm nay, trích xuất đúng nội dung thật trong 'aiSummary'.  
-   → Ví dụ: “Trong ngày 20/10/2025, ghi nhận sự kiện co giật”  
+Viết ngắn gọn, rõ ràng, tối đa 3–4 câu
 
-2. **Câu 2:** Đánh giá xu hướng dựa vào 'history'.  
-   - Nếu có cùng loại sự kiện → “Tình trạng co giật tái diễn liên tục 2 ngày.” hoặc dựa theo số ngày bị liên tục trong lịch sử mà viết tương ứng.  
-   - Nếu nặng hơn → “Mức độ nghiêm trọng tăng so với ngày trước.”  
-   - Nếu giảm → “Có dấu hiệu cải thiện.”  
-   - Nếu chỉ xuất hiện một lần → “Sự kiện đơn lẻ trong giai đoạn gần đây.”  
-   - Nếu không có dữ liệu → “Chưa có dữ liệu lịch sử để so sánh.”  
-
-3. **Câu 3 (tuỳ chọn):** Nếu dữ liệu có thông tin về thói quen ngủ/thức hoặc gợi ý giám sát, nêu lại khách quan.  
-   → “Bệnh nhân có thói quen ngủ 22:30 – 06:30, cần tiếp tục theo dõi hành vi trong giấc ngủ.”
-
----
-
-### 4️⃣ Quy tắc ngôn ngữ
+### 5 Quy tắc ngôn ngữ
 - Viết rõ ràng, chính xác, trung lập.  
 - Không xen tiếng Anh, không ký tự kỹ thuật.  
 - Không suy đoán nguyên nhân (“do stress”, “do bệnh lý nền”…).  
 - Có thể dùng cụm: “tái diễn”, “nặng hơn”, “cải thiện” **chỉ khi có dữ liệu thật trong history**.  
-- Không lặp lại nguyên văn 'suggest_summary_daily' của các ngày trước.
 
 ---
 
-### 5️⃣ Đầu ra JSON hợp lệ
+### 6 Đầu ra JSON hợp lệ
 `.trim();
 
     const responseSchema: OpenAI.ResponseFormatJSONSchema = {
