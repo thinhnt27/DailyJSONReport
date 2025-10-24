@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "22/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-22T08:10:14.131Z",
+          "end_time": "2025-10-22T08:10:14.131Z",
+          "status": "Normal",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa hoặc tối theo lịch và đã được kiểm tra, tuy nhiên vẫn cần tiếp tục theo dõi để có thể đưa ra những lời khuyên hợp lí.",
+          "actionSuggestion": "Theo dõi, Kiểm tra, Đối chiếu, Rà soát, Ghi chú."
+        }
+      ],
+      "mostActivePeriod": "15:10-15:10",
+      "mostAbnormalPeriod": "15:10-15:10",
+      "suggest_summary_daily": "Bệnh nhân có thói quen ngủ trưa hay tối, giờ ngủ 22:30 - 06:30, có dấu hiệu co giật; không đủ dữ liệu bệnh sử. 7 ngày gần đây từng xuất hiện 1 ngày có ngã. Chưa có dữ liệu lịch sử để so sánh."
+    }
+  ]
+}

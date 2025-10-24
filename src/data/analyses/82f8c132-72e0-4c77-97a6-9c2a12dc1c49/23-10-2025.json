@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "23/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-23T14:00:00.000Z",
+          "end_time": "2025-10-24T14:00:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ lúc 22:00 và thức dậy lúc 06:00 để duy trì sức khỏe tim mạch. Tuy nhiên, trong ngày hôm nay đã phát hiện 1 sự kiện cảnh báo về tình huống khẩn cấp với độ tin cậy 84%. Bệnh sử của bệnh nhân bao gồm rối loạn tiền đình và hen tuổi thơ nhưng phần lớn được kiểm soát ở tuổi trưởng thành.",
+          "actionSuggestion": "Khuyến cáo bệnh nhân cần tăng cường các biện pháp phòng chống tình huống khẩn cấp, đặc biệt là trong giờ ngủ-thức. Cũng nên theo dõi và điều chỉnh thói quen ngủ-thức để duy trì sức khỏe tim mạch."
+        }
+      ],
+      "mostActivePeriod": "21:00-21:00",
+      "mostAbnormalPeriod": "21:00-21:00",
+      "suggest_summary_daily": "Hôm nay, bệnh nhân có sự kiện cảnh báo về tình huống khẩn cấp. Tuy nhiên, tình trạng co giật lặp lại nhiều ngày qua, có xu hướng kéo dài. Bệnh nhân cần tiếp tục theo dõi và điều chỉnh hành vi trong giấc ngủ."
+    }
+  ]
+}

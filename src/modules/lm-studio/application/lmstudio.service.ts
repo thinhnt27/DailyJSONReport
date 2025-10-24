@@ -246,7 +246,7 @@ Mỗi bệnh nhân là 1 object trong mảng JSON:
     payload: LMStudioRangePayloadA,
   ): Promise<DailyReportSummary> {
     const systemPrompt = `
-Bạn là hệ thống AI giám sát và phân tích hành vi bệnh nhân trong 24 giờ gần nhất.  
+Bạn là hệ thống AI tổng hợp hành vi bệnh nhân trong 24 giờ gần nhất và so sánh với các ngày trước.  
 Nhiệm vụ của bạn là **tổng hợp trung thực các sự kiện bất thường xảy ra trong ngày hiện tại ('today')**,  
 đồng thời **đánh giá xu hướng diễn biến dựa trên lịch sử 7 ngày trước ('history')** nếu có.  
 
@@ -263,7 +263,7 @@ và nội dung phải **100% tiếng Việt**, không xen tiếng Anh, không k�
 
 Payload bao gồm:
 - 'user_id': mã bệnh nhân  
-- 'today': '{ date, analyses: AiUserAnalysisV2[] }' – dữ liệu hành vi hiện tại  
+- 'today': '{ date, analyses: AiUserAnalysisV2[] }' – dữ liệu hành vi ngày hiện tại  
 - 'history': 'DayDoc[]' – danh sách dữ liệu của 7 ngày trước  
 
 Mỗi phần tử 'AiUserAnalysisV2' có 'dailyActivityLog[]', chứa các trường:
@@ -280,7 +280,7 @@ Mỗi phần tử 'AiUserAnalysisV2' có 'dailyActivityLog[]', chứa các trư�
 - **Không bịa, không thêm chi tiết không có trong dữ liệu.**  
 - Tuy nhiên, **được phép tổng hợp và nhấn mạnh xu hướng** nếu cùng loại sự kiện lặp lại nhiều ngày.
 
-#### 2.2. Phát hiện và mô tả xu hướng
+#### 2.2. Phát hiện và mô tả xu hướng dựa trên ngày hiện tại so sánh với các ngày trước đó
 Phân tích dữ liệu theo logic sau:
 
 | Điều kiện | Cách viết trong summary |
@@ -334,7 +334,7 @@ Viết ngắn gọn, rõ ràng, tối đa 3–4 câu
     this.logger.log('LM Studio request start → model call');
     try {
       const completion = await this.client.chat.completions.create({
-        model: process.env.LM_MODEL ?? 'medgemma-4b-it',
+        model: 'mistralai_mistral-7b-instruct-v0.3-f16.gguf',
         temperature: 0.2,
         messages: [
           { role: 'system', content: systemPrompt },
