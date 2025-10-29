@@ -276,6 +276,7 @@ model payments {
   description         String?
   delivery_data       Json?
   vnp_txn_ref         String?               @unique @db.VarChar(50)
+  idempotency_key     String?               @unique @db.VarChar(128)
   vnp_create_date     BigInt?
   vnp_expire_date     BigInt?
   vnp_order_info      String?
@@ -283,7 +284,6 @@ model payments {
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
   updated_at          DateTime              @db.Timestamptz(6)
   status_enum         payment_status_enum?
-  idempotency_key     String?               @unique @db.VarChar(128)
   users               users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   subscription_events subscription_events[]
   transaction         transaction?
@@ -400,11 +400,11 @@ model email_templates {
 model snapshot_images {
   image_id    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   snapshot_id String    @db.Uuid
+  is_primary  Boolean   @default(false)
   image_path  String?
   cloud_url   String?
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   file_size   BigInt?
-  is_primary  Boolean   @default(false)
   snapshots   snapshots @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_snapshot_images_snapshot")
 
   @@index([created_at], map: "idx_snapshot_images_created_at")
@@ -488,6 +488,10 @@ model subscriptions {
   cancel_at_period_end  Boolean                  @default(false)
   offer_start_date      DateTime?                @db.Timestamptz(6)
   offer_end_date        DateTime?                @db.Timestamptz(6)
+  renewal_attempt_count Int                      @default(0)
+  next_renew_attempt_at DateTime?                @db.Timestamptz(6)
+  dunning_stage         String?                  @db.VarChar(50)
+  last_renewal_error    String?
   subscription_events   subscription_events[]
   plans                 plans?                   @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
   users                 users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -559,14 +563,14 @@ model ticket {
   created_at     DateTime                     @default(now()) @db.Timestamptz(6)
   updated_at     DateTime                     @db.Timestamptz(6)
   status         customer_request_status_enum @default(new)
-  assigned_to    String?                      @db.Uuid
   category       String?                      @default("general") @db.VarChar(50)
-  closed_at      DateTime?                    @db.Timestamptz(6)
-  due_date       DateTime?                    @db.Timestamptz(6)
-  metadata       Json?
   priority       String?                      @default("medium") @db.VarChar(20)
-  resolved_at    DateTime?                    @db.Timestamptz(6)
+  assigned_to    String?                      @db.Uuid
   tags           Json?
+  metadata       Json?
+  due_date       DateTime?                    @db.Timestamptz(6)
+  resolved_at    DateTime?                    @db.Timestamptz(6)
+  closed_at      DateTime?                    @db.Timestamptz(6)
   users          users                        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   ticket_history ticket_history[]
 
@@ -577,7 +581,6 @@ model ticket {
   @@index([assigned_to], map: "idx_support_tickets_assigned_to")
   @@index([category], map: "idx_support_tickets_category")
   @@index([priority], map: "idx_support_tickets_priority")
-  @@index([created_at], map: "idx_ticket_created_at")
 }
 
 model uploads {
@@ -675,31 +678,6 @@ model event_history {
   @@index([event_id, action], map: "idx_event_history_event_action")
   @@index([event_id], map: "idx_event_history_event_id")
   @@index([event_id, created_at], map: "idx_event_history_timeline")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model notifications_migration_backup {
-  notification_id String?                 @db.Uuid
-  user_id         String?                 @db.Uuid
-  event_id        String?                 @db.Uuid
-  severity        severity_enum?
-  title           String?                 @db.VarChar(255)
-  message         String?
-  delivery_data   Json?
-  status          notif_status_enum?
-  sent_at         DateTime?               @db.Timestamptz(6)
-  delivered_at    DateTime?               @db.Timestamptz(6)
-  retry_count     Int?
-  error_message   String?
-  read_at         DateTime?               @db.Timestamptz(6)
-  acknowledged_by String?                 @db.Uuid
-  acknowledged_at DateTime?               @db.Timestamptz(6)
-  created_at      DateTime?               @db.Timestamptz(6)
-  resolved_at     DateTime?               @db.Timestamptz(6)
-  channel         channel_enum?
-  business_type   notification_type_enum?
-
-  @@ignore
 }
 
 model system_config {
@@ -929,8 +907,8 @@ enum subscription_event_type_enum {
   paused
   resumed
   canceled
-  expired
   refunded
+  expired
 }
 
 enum subscription_status_enum {
@@ -1015,6 +993,8 @@ enum notification_type_enum {
   caregiver_invitation
   system_update
   emergency_alert
+  subscription_renewal
+  quota_warning
 }
 
 enum payment_status_enum {
