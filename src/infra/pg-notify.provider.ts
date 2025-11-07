@@ -14,6 +14,7 @@ interface AlarmPayload {
   bucket_day?: string; // YYYY-MM-DD
   op?: string;
   at?: string;
+  source_trigger?: string; // <— thêm để log nguồn trigger
 }
 
 function isAlarmPayload(v: unknown): v is AlarmPayload {
@@ -25,6 +26,7 @@ function isAlarmPayload(v: unknown): v is AlarmPayload {
   if (o.bucket_day !== undefined && !isStr(o.bucket_day)) return false;
   if (o.op !== undefined && !isStr(o.op)) return false;
   if (o.at !== undefined && !isStr(o.at)) return false;
+  if (o.source_trigger !== undefined && !isStr(o.source_trigger)) return false;
   return true;
 }
 
@@ -53,6 +55,7 @@ interface IPgClient {
 function createPgClient(config: ClientConfig): IPgClient {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const raw = new PgRawClient(config);
+
   const client: IPgClient = {
     connect: async () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -75,23 +78,44 @@ function createPgClient(config: ClientConfig): IPgClient {
   return client;
 }
 
+/** Chỉ cho phép channel theo pattern identifier PostgreSQL */
+function sanitizeChannel(input: string): string {
+  const name = input.trim();
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+    // fallback an toàn
+    return 'detection_alarm_channel';
+  }
+  return name;
+}
+
 @Injectable()
 export class PgNotifyProvider implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PgNotifyProvider.name);
   private client: IPgClient | null = null;
 
-  /** Channel riêng cho đúng trigger */
-  private readonly CHANNEL =
-    process.env.PG_NOTIFY_CHANNEL?.trim() || 'system_alarm_channel_update';
+  /** Channel riêng đúng trigger bạn muốn nghe (cấu hình qua ENV) */
+  private readonly CHANNEL = sanitizeChannel(
+    process.env.PG_NOTIFY_CHANNEL ?? 'detection_alarm_channel',
+  );
 
-  /** Đăng ký callback nhận thông báo */
+  /** Lưu lại notify gần nhất để debug nhanh */
+  public lastNotify?: { at: string; payload: AlarmPayload };
+
+  /** Callback khi có notify */
   onAlarm?: (p: AlarmPayload) => void;
 
   async onModuleInit(): Promise<void> {
-    const dsn = process.env.DATABASE_URL; // hoặc SUPABASE_DB_URL_SESSION nếu bạn dùng DSN session
+    this.logger.log('PgNotifyProvider init starting');
+
+    const dsn = process.env.DATABASE_URL ?? process.env.DATABASE_URL;
+
     if (!dsn || dsn.trim().length === 0) {
+      this.logger.error('Missing PG_NOTIFY_DATABASE_URL / DATABASE_URL env');
       throw new Error('Missing DATABASE_URL env');
     }
+
+    this.logger.log(`PgNotifyProvider using DSN=${dsn}`);
+    this.logger.log(`PgNotifyProvider channel=${this.CHANNEL}`);
 
     const config: ClientConfig = {
       connectionString: dsn,
@@ -100,12 +124,22 @@ export class PgNotifyProvider implements OnModuleInit, OnModuleDestroy {
 
     const client = createPgClient(config);
     await client.connect();
-    await client.query(`LISTEN ${this.CHANNEL}`);
 
     client.on('notification', (msg) => {
+      this.logger.log(
+        `Raw NOTIFY: channel=${msg.channel} payload=${msg.payload}`,
+      );
+
       if (msg.channel !== this.CHANNEL) return;
+
       const data = parsePayload(msg.payload);
       if (data) {
+        this.lastNotify = { at: new Date().toISOString(), payload: data };
+        this.logger.log(
+          `NOTIFY <- channel=${this.CHANNEL} trigger=${
+            data.source_trigger ?? 'unknown'
+          } bucket_day=${data.bucket_day ?? 'n/a'}`,
+        );
         this.onAlarm?.(data);
       } else {
         this.logger.warn(
@@ -113,6 +147,8 @@ export class PgNotifyProvider implements OnModuleInit, OnModuleDestroy {
         );
       }
     });
+
+    await client.query(`LISTEN ${this.CHANNEL}`);
 
     this.client = client;
     this.logger.log(`LISTEN ${this.CHANNEL} ready`);

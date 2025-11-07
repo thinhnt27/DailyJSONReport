@@ -13,6 +13,7 @@ export class AlarmNotifyConsumer implements OnModuleInit {
     private readonly evSvc: EventDetectionsService,
   ) {}
   onModuleInit() {
+    this.logger.log('AlarmNotifyConsumer init - subscribe PgNotifyProvider');
     this.pg.onAlarm = (p) =>
       void this.handle(p).catch((err) =>
         this.logger.error('handle alarm failed', err as Error),
