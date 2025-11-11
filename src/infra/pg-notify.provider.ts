@@ -53,7 +53,6 @@ interface IPgClient {
 
 /** Factory cô lập cast any để không vướng no-unsafe-* */
 function createPgClient(config: ClientConfig): IPgClient {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const raw = new PgRawClient(config);
 
   const client: IPgClient = {
@@ -92,79 +91,127 @@ function sanitizeChannel(input: string): string {
 export class PgNotifyProvider implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PgNotifyProvider.name);
   private client: IPgClient | null = null;
+  private reconnecting = false;
+  private stopped = false;
 
-  /** Channel riêng đúng trigger bạn muốn nghe (cấu hình qua ENV) */
   private readonly CHANNEL = sanitizeChannel(
     process.env.PG_NOTIFY_CHANNEL ?? 'detection_alarm_channel',
   );
 
-  /** Lưu lại notify gần nhất để debug nhanh */
   public lastNotify?: { at: string; payload: AlarmPayload };
-
-  /** Callback khi có notify */
   onAlarm?: (p: AlarmPayload) => void;
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('PgNotifyProvider init starting');
+    this.stopped = false;
+    await this.connectAndListen();
+  }
 
-    const dsn = process.env.DATABASE_URL ?? process.env.DATABASE_URL;
+  async onModuleDestroy(): Promise<void> {
+    this.stopped = true;
+    if (this.client) {
+      try {
+        await this.client.query(`UNLISTEN ${this.CHANNEL}`);
+        await this.client.end();
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : 'Unknown error on disconnect';
+        this.logger.warn(`pg disconnect warning: ${msg}`);
+      } finally {
+        this.client = null;
+      }
+    }
+  }
 
+  /** Kết nối + đăng ký lắng nghe, có auto reconnect */
+  private async connectAndListen(): Promise<void> {
+    if (this.stopped) return;
+
+    const dsn = process.env.DATABASE_URL ?? process.env.PG_NOTIFY_DATABASE_URL;
     if (!dsn || dsn.trim().length === 0) {
-      this.logger.error('Missing PG_NOTIFY_DATABASE_URL / DATABASE_URL env');
+      this.logger.error('Missing DATABASE_URL or PG_NOTIFY_DATABASE_URL env');
       throw new Error('Missing DATABASE_URL env');
     }
-
-    this.logger.log(`PgNotifyProvider using DSN=${dsn}`);
-    this.logger.log(`PgNotifyProvider channel=${this.CHANNEL}`);
 
     const config: ClientConfig = {
       connectionString: dsn,
       ssl: { rejectUnauthorized: false },
     };
 
-    const client = createPgClient(config);
-    await client.connect();
-
-    client.on('notification', (msg) => {
-      this.logger.log(
-        `Raw NOTIFY: channel=${msg.channel} payload=${msg.payload}`,
-      );
-
-      if (msg.channel !== this.CHANNEL) return;
-
-      const data = parsePayload(msg.payload);
-      if (data) {
-        this.lastNotify = { at: new Date().toISOString(), payload: data };
-        this.logger.log(
-          `NOTIFY <- channel=${this.CHANNEL} trigger=${
-            data.source_trigger ?? 'unknown'
-          } bucket_day=${data.bucket_day ?? 'n/a'}`,
-        );
-        this.onAlarm?.(data);
-      } else {
-        this.logger.warn(
-          `Ignored NOTIFY payload (invalid JSON/shape): ${String(msg.payload)}`,
-        );
-      }
-    });
-
-    await client.query(`LISTEN ${this.CHANNEL}`);
-
-    this.client = client;
-    this.logger.log(`LISTEN ${this.CHANNEL} ready`);
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    if (!this.client) return;
     try {
-      await this.client.query(`UNLISTEN ${this.CHANNEL}`);
-      await this.client.end();
+      const client = createPgClient(config);
+      await client.connect();
+
+      (client as unknown as PgRawClient).on('error', (err: Error) => {
+        this.logger.error(`❌ PG error: ${err.message}`);
+        this.scheduleReconnect();
+      });
+
+      (client as unknown as PgRawClient).on('end', () => {
+        this.logger.warn('⚠️ PG connection ended');
+        this.scheduleReconnect();
+      });
+
+      client.on('notification', (msg) => {
+        this.logger.log(
+          `Raw NOTIFY: channel=${msg.channel} payload=${msg.payload}`,
+        );
+
+        if (msg.channel !== this.CHANNEL) return;
+
+        const data = parsePayload(msg.payload);
+        if (data) {
+          this.lastNotify = { at: new Date().toISOString(), payload: data };
+          this.logger.log(
+            `NOTIFY <- channel=${this.CHANNEL} trigger=${
+              data.source_trigger ?? 'unknown'
+            } bucket_day=${data.bucket_day ?? 'n/a'}`,
+          );
+          this.onAlarm?.(data);
+        } else {
+          this.logger.warn(
+            `Ignored NOTIFY payload (invalid JSON/shape): ${String(
+              msg.payload,
+            )}`,
+          );
+        }
+      });
+
+      await client.query(`LISTEN ${this.CHANNEL}`);
+      this.client = client;
+      this.logger.log(`✅ LISTEN ${this.CHANNEL} ready`);
+
+      // ✅ THÊM ĐOẠN NÀY NGAY Ở ĐÂY:
+      setInterval(() => {
+        void (async () => {
+          if (!this.client) return;
+          try {
+            await this.client.query('SELECT 1');
+            this.logger.verbose('💓 PG heartbeat ok');
+          } catch {
+            this.logger.warn('💔 Heartbeat failed — reconnecting...');
+            this.scheduleReconnect();
+          }
+        })();
+      }, 30000);
     } catch (err) {
       const msg =
-        err instanceof Error ? err.message : 'Unknown error on disconnect';
-      this.logger.warn(`pg disconnect warning: ${msg}`);
-    } finally {
-      this.client = null;
+        err instanceof Error ? err.message : 'Unknown error on connect';
+      this.logger.error(`PG connect failed: ${msg}`);
+      this.scheduleReconnect();
     }
+  }
+
+  /** Lên lịch reconnect an toàn */
+  private scheduleReconnect(): void {
+    if (this.reconnecting || this.stopped) return;
+    this.reconnecting = true;
+    this.logger.warn('⏳ Scheduling reconnect in 5s...');
+    setTimeout(() => {
+      void (async () => {
+        this.reconnecting = false;
+        this.logger.log('🔁 Reconnecting...');
+        await this.connectAndListen();
+      })();
+    }, 5000);
   }
 }
