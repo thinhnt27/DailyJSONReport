@@ -1,0 +1,35 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "27/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-26T14:00:00.000Z",
+          "end_time": "2025-10-26T14:03:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân té ngã mạnh trong lúc co giật, mất ý thức tạm thời.",
+          "actionSuggestion": "Theo dõi chặt chẽ sau cơn co giật và thông báo bác sĩ."
+        },
+        {
+          "start_time": "2025-10-26T14:48:00.000Z",
+          "end_time": "2025-10-26T14:51:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Sau cơn co giật, bệnh nhân tỉnh lại, có biểu hiện mệt và run tay.",
+          "actionSuggestion": "Theo dõi tình trạng hồi phục trong vài giờ tiếp theo."
+        },
+        {
+          "start_time": "2025-10-26T23:30:00.000Z",
+          "end_time": "2025-10-26T23:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Xuất hiện thêm một cơn co giật nhẹ, thời gian ngắn.",
+          "actionSuggestion": "Ghi nhận tần suất để so sánh với ngày trước."
+        }
+      ],
+      "mostActivePeriod": "14:45-15:00",
+      "mostAbnormalPeriod": "14:00-14:03",
+      "suggest_summary_daily": "Bệnh nhân có cơn co giật mạnh gây té ngã và một số cơn nhẹ sau đó. Mức độ nghiêm trọng cao hơn hai ngày trước, cho thấy tình trạng đang xấu đi. Cần chuẩn bị biện pháp xử lý khẩn cấp khi cơn co giật xảy ra."
+    }
+  ]
+}

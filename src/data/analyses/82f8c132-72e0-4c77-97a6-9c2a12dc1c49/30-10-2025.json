@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "30/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-129T14:10:00.000Z",
+          "end_time": "2025-10-17T14:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật nhẹ đầu tiên được ghi nhận.",
+          "actionSuggestion": "Theo dõi phản ứng cơ thể."
+        }
+      ],
+      "mostActivePeriod": "14:00-14:30",
+      "mostAbnormalPeriod": "14:10-14:13",
+      "suggest_summary_daily": "Bệnh nhân bắt đầu xuất hiện co giật nhẹ. Chưa có dấu hiệu nghiêm trọng."
+    }
+  ]
+}

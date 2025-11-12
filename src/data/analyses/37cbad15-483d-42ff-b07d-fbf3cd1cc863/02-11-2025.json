@@ -1,0 +1,49 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "02/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-01T13:10:00.000Z",
+          "end_time": "2025-11-01T13:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân té ngã nhẹ, không mất ý thức.",
+          "actionSuggestion": "Theo dõi để phát hiện mất thăng bằng tái diễn."
+        },
+        {
+          "start_time": "2025-11-01T14:45:00.000Z",
+          "end_time": "2025-11-01T14:48:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân xuất hiện co giật nhẹ ngay sau khi ngã.",
+          "actionSuggestion": "Ghi lại thời điểm và mức độ co giật."
+        },
+        {
+          "start_time": "2025-11-01T17:10:00.000Z",
+          "end_time": "2025-11-01T17:13:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật mạnh khiến bệnh nhân mất kiểm soát vận động.",
+          "actionSuggestion": "Liên hệ bác sĩ khẩn cấp và đảm bảo an toàn."
+        },
+        {
+          "start_time": "2025-11-01T20:50:00.000Z",
+          "end_time": "2025-11-01T20:53:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Sau cơn co giật, bệnh nhân mệt mỏi và run tay ngắn hạn.",
+          "actionSuggestion": "Theo dõi sự phục hồi sau cơn."
+        },
+        {
+          "start_time": "2025-11-01T23:25:00.000Z",
+          "end_time": "2025-11-01T23:28:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật nhẹ khác diễn ra ngắn, tự dừng.",
+          "actionSuggestion": "Tiếp tục theo dõi tần suất."
+        }
+      ],
+      "mostActivePeriod": "17:00-23:30",
+      "mostAbnormalPeriod": "17:10-17:13",
+      "suggest_summary_daily": "Bệnh nhân có nhiều sự kiện co giật và một lần té ngã, cho thấy chu kỳ tái phát đang diễn ra mạnh hơn."
+    }
+  ]
+}

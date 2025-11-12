@@ -1,0 +1,28 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "01/11/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-31T14:00:00.000Z",
+          "end_time": "2025-10-31T14:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân xuất hiện hai cơn co giật ngắn trong buổi chiều.",
+          "actionSuggestion": "Theo dõi tần suất và thời điểm."
+        },
+        {
+          "start_time": "2025-10-31T22:20:00.000Z",
+          "end_time": "2025-10-31T22:23:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật toàn thân kéo dài, mất kiểm soát.",
+          "actionSuggestion": "Cần can thiệp y tế khẩn cấp."
+        }
+      ],
+      "mostActivePeriod": "22:00-23:00",
+      "mostAbnormalPeriod": "22:20-22:23",
+      "suggest_summary_daily": "Tình trạng co giật tăng nhanh, xuất hiện cơn nặng vào ban đêm. Cảnh báo giai đoạn nguy hiểm bắt đầu."
+    }
+  ]
+}

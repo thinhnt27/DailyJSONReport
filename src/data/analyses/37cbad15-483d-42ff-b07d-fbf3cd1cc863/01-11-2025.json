@@ -1,0 +1,49 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "01/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-31T13:05:00.000Z",
+          "end_time": "2025-10-31T13:08:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân xuất hiện co giật nhẹ trong vài phút.",
+          "actionSuggestion": "Theo dõi phản ứng cơ thể sau sự kiện."
+        },
+        {
+          "start_time": "2025-10-31T15:40:00.000Z",
+          "end_time": "2025-10-31T15:43:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Một cơn co giật ngắn khác được ghi nhận.",
+          "actionSuggestion": "Ghi lại thời điểm để đánh giá tần suất."
+        },
+        {
+          "start_time": "2025-10-31T18:20:00.000Z",
+          "end_time": "2025-10-31T18:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có biểu hiện run nhẹ toàn thân.",
+          "actionSuggestion": "Theo dõi để xác định dấu hiệu khởi phát co giật."
+        },
+        {
+          "start_time": "2025-10-31T21:30:00.000Z",
+          "end_time": "2025-10-31T21:33:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật kéo dài, mất kiểm soát vận động tạm thời.",
+          "actionSuggestion": "Thông báo bác sĩ và chuẩn bị hỗ trợ khẩn cấp."
+        },
+        {
+          "start_time": "2025-10-31T23:55:00.000Z",
+          "end_time": "2025-10-31T23:58:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Sau cơn co giật, bệnh nhân xuất hiện run nhẹ và mệt.",
+          "actionSuggestion": "Theo dõi hồi phục trong 30 phút tiếp theo."
+        }
+      ],
+      "mostActivePeriod": "21:00-00:00",
+      "mostAbnormalPeriod": "21:30-21:33",
+      "suggest_summary_daily": "Bệnh nhân có nhiều cơn co giật nhẹ, trong đó một cơn kéo dài hơn bình thường. Đây là ngày đầu khởi phát chu kỳ, cần tiếp tục theo dõi để xác định tần suất tái diễn."
+    }
+  ]
+}

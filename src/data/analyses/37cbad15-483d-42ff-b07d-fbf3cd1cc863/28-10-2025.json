@@ -1,0 +1,35 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "28/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-28T02:30:00.000Z",
+          "end_time": "2025-10-20T28:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật ngắn, thời gian dưới 3 phút.",
+          "actionSuggestion": "Theo dõi tình trạng hồi phục ngay sau cơn co giật."
+        },
+        {
+          "start_time": "2025-10-28T07:50:00.000Z",
+          "end_time": "2025-10-28T07:53:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân mất thăng bằng và ngã nhẹ, không có biểu hiện nghiêm trọng.",
+          "actionSuggestion": "Quan sát phản ứng vận động và giữ an toàn xung quanh."
+        },
+        {
+          "start_time": "2025-10-28T09:10:00.000Z",
+          "end_time": "2025-10-28T09:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có biểu hiện co giật nhẹ vào cuối ngày.",
+          "actionSuggestion": "Ghi nhận thời điểm và mức độ để theo dõi."
+        }
+      ],
+      "mostActivePeriod": "22:00-22:30",
+      "mostAbnormalPeriod": "22:10-22:13",
+      "suggest_summary_daily": "Tần suất co giật giảm so với hôm trước, chỉ còn các sự kiện ngắn và nhẹ. Tuy nhiên, hiện tượng tái diễn cho thấy tình trạng vẫn chưa ổn định. Cần tiếp tục giám sát sát sao để đánh giá xu hướng trong các ngày tới."
+    }
+  ]
+}

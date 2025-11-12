@@ -1,0 +1,28 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "29/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-29T09:40:00.000Z",
+          "end_time": "2025-10-29T09:43:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân té ngã trong lúc di chuyển, thời gian ngắn.",
+          "actionSuggestion": "Theo dõi dấu hiệu mất thăng bằng."
+        },
+        {
+          "start_time": "2025-10-29T12:10:00.000Z",
+          "end_time": "2025-10-29T12:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thêm một cơn co giật nhẹ buổi trưa.",
+          "actionSuggestion": "Ghi lại thời điểm để đối chiếu tần suất."
+        }
+      ],
+      "mostActivePeriod": "19:00-19:30",
+      "mostAbnormalPeriod": "09:40-09:43",
+      "suggest_summary_daily": "Tình trạng té ngã và co giật tái diễn sau hai ngày ổn định. Xu hướng chu kỳ tái phát rõ ràng, cần tăng tần suất theo dõi."
+    }
+  ]
+}

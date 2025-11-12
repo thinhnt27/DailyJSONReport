@@ -1,0 +1,28 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "24/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-24T05:55:00.000Z",
+          "end_time": "2025-10-24T05:58:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân bị té ngã nhẹ, không có biểu hiện bất thường sau đó.",
+          "actionSuggestion": "Theo dõi thêm để phát hiện khả năng mất thăng bằng tái diễn."
+        },
+        {
+          "start_time": "2025-10-24T11:20:00.000Z",
+          "end_time": "2025-10-24T11:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Sau sự kiện ngã, bệnh nhân di chuyển chậm và cần được hỗ trợ nhẹ.",
+          "actionSuggestion": "Tiếp tục quan sát trạng thái vận động và phản ứng của bệnh nhân."
+        }
+      ],
+      "mostActivePeriod": "11:00-11:30",
+      "mostAbnormalPeriod": "05:55-05:58",
+      "suggest_summary_daily": "Bệnh nhân có sự kiện té ngã nhẹ và hồi phục nhanh chóng. Cần duy trì giám sát để ngăn ngừa ngã tái diễn."
+    }
+  ]
+}

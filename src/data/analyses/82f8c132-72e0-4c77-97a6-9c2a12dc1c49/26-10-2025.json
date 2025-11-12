@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "26/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-25T14:00:00.000Z",
+          "end_time": "2025-10-25T14:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân bị té ngã nhẹ trong khi đi lại, không ghi nhận chấn thương.",
+          "actionSuggestion": "Theo dõi để phát hiện mất thăng bằng tái diễn."
+        }
+      ],
+      "mostActivePeriod": "14:00-14:30",
+      "mostAbnormalPeriod": "14:00-14:03",
+      "suggest_summary_daily": "Ghi nhận một sự kiện té ngã nhẹ. So với hôm qua, tình trạng có xu hướng tái phát bất thường. Cần quan sát trong những ngày tới để xác định chu kỳ rõ ràng."
+    }
+  ]
+}

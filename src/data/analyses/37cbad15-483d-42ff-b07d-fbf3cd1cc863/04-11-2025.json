@@ -1,0 +1,56 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "04/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-03T21:00:00.000Z",
+          "end_time": "2025-11-03T21:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Xuất hiện co giật nhẹ cuối ngày.",
+          "actionSuggestion": "Theo dõi mức độ mệt sau cơn."
+        },
+        {
+          "start_time": "2025-11-03T23:30:00.000Z",
+          "end_time": "2025-11-03T23:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật ngắn, thời gian dưới 3 phút.",
+          "actionSuggestion": "Ghi nhận vào nhật ký theo dõi."
+        },
+        {
+          "start_time": "2025-11-04T04:20:00.000Z",
+          "end_time": "2025-11-04T04:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có một cơn co giật nhẹ vào sáng sớm.",
+          "actionSuggestion": "Theo dõi và ghi lại chi tiết thời điểm."
+        },
+        {
+          "start_time": "2025-11-04T09:40:00.000Z",
+          "end_time": "2025-11-04T09:43:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật toàn thân kéo dài, có mất kiểm soát tạm thời.",
+          "actionSuggestion": "Cần can thiệp y tế khẩn cấp."
+        },
+        {
+          "start_time": "2025-11-04T11:30:00.000Z",
+          "end_time": "2025-11-04T11:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân té ngã sau cơn co giật.",
+          "actionSuggestion": "Theo dõi chấn thương sau ngã."
+        },
+        {
+          "start_time": "2025-11-04T11:50:00.000Z",
+          "end_time": "2025-11-04T11:53:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Một cơn co giật mạnh khác tái diễn.",
+          "actionSuggestion": "Giám sát y tế liên tục trong đêm."
+        }
+      ],
+      "mostActivePeriod": "18:00-23:30",
+      "mostAbnormalPeriod": "09:40-09:43",
+      "suggest_summary_daily": "Tình trạng co giật và té ngã tăng rõ rệt, nhiều sự kiện liên tiếp trong ngày. Chu kỳ tái phát đạt đỉnh và có xu hướng nặng hơn so với các lần trước."
+    }
+  ]
+}
