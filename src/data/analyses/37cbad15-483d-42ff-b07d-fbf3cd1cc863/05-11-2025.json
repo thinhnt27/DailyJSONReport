@@ -1,0 +1,56 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "05/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-05T02:15:00.000Z",
+          "end_time": "2025-11-05T02:18:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có cơn co giật nhẹ vào đầu buổi sáng, thời gian ngắn.",
+          "actionSuggestion": "Theo dõi mức độ co giật và ghi lại thời điểm cụ thể."
+        },
+        {
+          "start_time": "2025-11-05T05:10:00.000Z",
+          "end_time": "2025-11-05T05:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Một cơn co giật khác diễn ra trong thời gian ngắn, không mất kiểm soát vận động.",
+          "actionSuggestion": "Tiếp tục theo dõi các biểu hiện co giật nhẹ."
+        },
+        {
+          "start_time": "2025-11-05T07:25:00.000Z",
+          "end_time": "2025-11-05T07:28:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật mạnh hơn khiến bệnh nhân bị té ngã.",
+          "actionSuggestion": "Giám sát tình trạng sau ngã và thông báo bác sĩ."
+        },
+        {
+          "start_time": "2025-11-05T09:30:00.000Z",
+          "end_time": "2025-11-05T09:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Sau sự kiện, bệnh nhân có biểu hiện run nhẹ, mệt mỏi.",
+          "actionSuggestion": "Theo dõi quá trình hồi phục trong vài giờ tới."
+        },
+        {
+          "start_time": "2025-11-05T10:20:00.000Z",
+          "end_time": "2025-11-05T10:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Ghi nhận thêm một cơn co giật nhẹ vào buổi chiều.",
+          "actionSuggestion": "Đánh giá tần suất để xác định xu hướng giảm."
+        },
+        {
+          "start_time": "2025-11-05T11:36:00.000Z",
+          "end_time": "2025-11-05T11:38:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật ngắn cuối ngày, không có té ngã.",
+          "actionSuggestion": "Tiếp tục ghi nhận dữ liệu để đánh giá sự ổn định."
+        }
+      ],
+      "mostActivePeriod": "09:00-17:30",
+      "mostAbnormalPeriod": "09:25-09:28",
+      "suggest_summary_daily": "Bệnh nhân vẫn có nhiều sự kiện co giật nhưng mức độ nhẹ hơn và không kéo dài. Một lần té ngã xảy ra trong buổi sáng nhưng nhanh chóng hồi phục, tình trạng đã có xu hướng giảm và ổn định hơn."
+    }
+  ]
+}

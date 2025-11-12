@@ -1,0 +1,28 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "24/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-23T13:10:00.000Z",
+          "end_time": "2025-10-23T13:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có một cơn co giật nhẹ kéo dài trong vài phút.",
+          "actionSuggestion": "Theo dõi tình trạng cơ thể sau cơn co giật."
+        },
+        {
+          "start_time": "2025-10-23T20:25:00.000Z",
+          "end_time": "2025-10-23T20:28:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thêm một cơn co giật ngắn vào buổi tối.",
+          "actionSuggestion": "Ghi lại thời điểm xảy ra để so sánh tần suất."
+        }
+      ],
+      "mostActivePeriod": "20:00-21:00",
+      "mostAbnormalPeriod": "13:10-13:13",
+      "suggest_summary_daily": "Bệnh nhân xuất hiện hai cơn co giật nhẹ trong ngày. Các biểu hiện không nghiêm trọng nhưng cần theo dõi thêm để xác định chu kỳ lặp lại."
+    }
+  ]
+}

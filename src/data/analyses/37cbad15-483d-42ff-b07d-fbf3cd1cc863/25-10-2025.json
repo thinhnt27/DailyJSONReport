@@ -1,0 +1,35 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "25/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-24T13:05:00.000Z",
+          "end_time": "2025-10-24T13:08:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân xuất hiện co giật nhẹ trong thời gian ngắn.",
+          "actionSuggestion": "Theo dõi và ghi nhận thời điểm xảy ra co giật."
+        },
+        {
+          "start_time": "2025-10-24T20:20:00.000Z",
+          "end_time": "2025-10-24T20:23:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thêm một cơn co giật ngắn vào buổi tối.",
+          "actionSuggestion": "Theo dõi thêm để xác định tần suất co giật."
+        },
+        {
+          "start_time": "2025-10-24T22:41:00.000Z",
+          "end_time": "2025-10-24T22:44:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật kéo dài hơn các lần trước, biểu hiện mất kiểm soát tạm thời.",
+          "actionSuggestion": "Thông báo bác sĩ và chuẩn bị hỗ trợ khẩn cấp."
+        }
+      ],
+      "mostActivePeriod": "22:30-23:00",
+      "mostAbnormalPeriod": "22:41-22:44",
+      "suggest_summary_daily": "Bệnh nhân có ba cơn co giật trong ngày, mức độ dao động từ nhẹ đến nặng. Cơn cuối kéo dài hơn và nghiêm trọng hơn các sự kiện trước. Đây là ngày đầu ghi nhận dấu hiệu bất thường cần giám sát chặt."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "26/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-26T06:00:00.000Z",
+          "end_time": "2025-10-26T06:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân bị té nhẹ sau khi co giật ngắn.",
+          "actionSuggestion": "Theo dõi phản ứng cơ thể sau khi ngã."
+        },
+        {
+          "start_time": "2025-10-26T08:40:00.000Z",
+          "end_time": "2025-10-26T08:43:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Ghi nhận thêm một cơn co giật nhẹ vào buổi sáng.",
+          "actionSuggestion": "Tiếp tục giám sát và ghi nhận thời điểm."
+        },
+        {
+          "start_time": "2025-10-26T10:50:00.000Z",
+          "end_time": "2025-10-26T10:54:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật mạnh khiến bệnh nhân mất kiểm soát trong vài phút.",
+          "actionSuggestion": "Liên hệ bác sĩ để đánh giá tình trạng co giật."
+        }
+      ],
+      "mostActivePeriod": "14:30-15:00",
+      "mostAbnormalPeriod": "14:50-14:54",
+      "suggest_summary_daily": "Bệnh nhân tiếp tục có nhiều cơn co giật trong ngày, bao gồm một lần té nhẹ. So với hôm trước, tần suất và mức độ nghiêm trọng có xu hướng tăng. Cần theo dõi sát để ngăn ngừa rủi ro."
+    }
+  ]
+}

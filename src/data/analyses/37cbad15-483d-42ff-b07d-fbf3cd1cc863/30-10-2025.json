@@ -1,0 +1,35 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "30/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-29T16:30:00.000Z",
+          "end_time": "2025-10-29T16:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Ghi nhận một cơn co giật nhẹ đầu ngày.",
+          "actionSuggestion": "Theo dõi và ghi chép chi tiết thời điểm co giật."
+        },
+        {
+          "start_time": "2025-10-29T19:15:00.000Z",
+          "end_time": "2025-10-29T19:18:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân mất thăng bằng nhẹ nhưng không té.",
+          "actionSuggestion": "Tiếp tục quan sát và giữ an toàn."
+        },
+        {
+          "start_time": "2025-10-29T20:05:00.000Z",
+          "end_time": "2025-10-29T20:08:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Cơn co giật ngắn vào cuối ngày, không nghiêm trọng.",
+          "actionSuggestion": "Theo dõi sự ổn định trong đêm."
+        }
+      ],
+      "mostActivePeriod": "20:00-20:30",
+      "mostAbnormalPeriod": "06:30-06:33",
+      "suggest_summary_daily": "Số lượng và mức độ co giật giảm rõ so với các ngày trước. Bệnh nhân có xu hướng ổn định hơn, chưa ghi nhận sự kiện nguy hiểm. Tiếp tục duy trì theo dõi để xác nhận xu hướng cải thiện."
+    }
+  ]
+}

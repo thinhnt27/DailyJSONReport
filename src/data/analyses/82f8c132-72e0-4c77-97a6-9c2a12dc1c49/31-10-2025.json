@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "31/10/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-30T10:15:00.000Z",
+          "end_time": "2025-10-30T10:18:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân bị té nhẹ, không ghi nhận mất ý thức.",
+          "actionSuggestion": "Quan sát thêm phản ứng sau ngã."
+        }
+      ],
+      "mostActivePeriod": "10:00-10:30",
+      "mostAbnormalPeriod": "10:15-10:18",
+      "suggest_summary_daily": "Ghi nhận sự kiện té nhẹ, tần suất bất thường bắt đầu tăng. Cần giám sát thêm."
+    }
+  ]
+}

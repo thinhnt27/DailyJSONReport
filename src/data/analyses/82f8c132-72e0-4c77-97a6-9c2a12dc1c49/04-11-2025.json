@@ -1,0 +1,21 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "04/11/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-03T14:00:00.000Z",
+          "end_time": "2025-11-03T14:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Xuất hiện co giật nhẹ ngắn hạn.",
+          "actionSuggestion": "Ghi nhận và so sánh với ngày trước."
+        }
+      ],
+      "mostActivePeriod": "14:00-14:30",
+      "mostAbnormalPeriod": "14:00-14:03",
+      "suggest_summary_daily": "Cơn co giật nhẹ hơn và ít hơn so với các ngày trước. Có dấu hiệu giảm mức độ."
+    }
+  ]
+}

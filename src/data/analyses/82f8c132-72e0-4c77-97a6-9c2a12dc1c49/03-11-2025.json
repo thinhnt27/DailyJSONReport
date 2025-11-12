@@ -1,0 +1,28 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "03/11/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-03T08:30:00.000Z",
+          "end_time": "2025-11-03T08:33:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật lặp lại, thời gian kéo dài.",
+          "actionSuggestion": "Theo dõi liên tục để đảm bảo an toàn."
+        },
+        {
+          "start_time": "2025-11-03T11:00:00.000Z",
+          "end_time": "2025-11-03T11:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có biểu hiện run nhẹ sau cơn co giật.",
+          "actionSuggestion": "Theo dõi hồi phục sau cơn."
+        }
+      ],
+      "mostActivePeriod": "08:00-12:00",
+      "mostAbnormalPeriod": "08:30-08:33",
+      "suggest_summary_daily": "Tình trạng vẫn nghiêm trọng, tuy có dấu hiệu giảm tần suất so với hôm trước. Bệnh nhân cần được theo dõi sát trong 24 giờ tới."
+    }
+  ]
+}

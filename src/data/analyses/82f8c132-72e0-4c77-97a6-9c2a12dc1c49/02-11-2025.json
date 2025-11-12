@@ -1,0 +1,28 @@
+{
+  "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+  "date": "02/11/2025",
+  "analyses": [
+    {
+      "user_id": "82f8c132-72e0-4c77-97a6-9c2a12dc1c49",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-01T13:10:00.000Z",
+          "end_time": "2025-11-01T13:13:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân té ngã do co giật.",
+          "actionSuggestion": "Liên hệ bác sĩ và theo dõi sau cơn."
+        },
+        {
+          "start_time": "2025-11-01T21:55:00.000Z",
+          "end_time": "2025-11-01T21:58:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Cơn co giật mạnh khác kéo dài hơn 3 phút.",
+          "actionSuggestion": "Cần xử lý cấp cứu nếu tái phát."
+        }
+      ],
+      "mostActivePeriod": "21:30-22:00",
+      "mostAbnormalPeriod": "21:55-21:58",
+      "suggest_summary_daily": "Bệnh nhân bước vào giai đoạn nguy hiểm, nhiều cơn co giật liên tiếp trong ngày. Mức độ nghiêm trọng cao nhất trong tuần."
+    }
+  ]
+}

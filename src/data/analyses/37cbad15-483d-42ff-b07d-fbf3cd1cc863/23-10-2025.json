@@ -1,0 +1,28 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "23/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-23T13:10:00.000Z",
+          "end_time": "2025-10-23T13:13:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có biểu hiện co giật nhẹ trong thời gian ngắn.",
+          "actionSuggestion": "Theo dõi phản ứng cơ thể và ghi nhận thời điểm co giật."
+        },
+        {
+          "start_time": "2025-10-23T22:41:00.000Z",
+          "end_time": "2025-10-23T22:44:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Xuất hiện cơn co giật toàn thân kéo dài vài phút, có dấu hiệu nghiêm trọng hơn trước.",
+          "actionSuggestion": "Liên hệ bác sĩ và chuẩn bị biện pháp xử lý khẩn cấp."
+        }
+      ],
+      "mostActivePeriod": "22:30-23:00",
+      "mostAbnormalPeriod": "22:41-22:44",
+      "suggest_summary_daily": "Bệnh nhân có hai cơn co giật trong ngày, trong đó một cơn nghiêm trọng hơn so với ngày trước. Tình trạng co giật đã tái diễn liên tục và có xu hướng tăng mức độ. Cần giám sát chặt chẽ."
+    }
+  ]
+}

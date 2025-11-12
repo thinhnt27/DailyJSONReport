@@ -1,0 +1,28 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "31/10/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-10-31T07:00:00.000Z",
+          "end_time": "2025-10-31T07:03:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Ghi nhận rung nhẹ trong vài giây, không diễn tiến thành co giật.",
+          "actionSuggestion": "Ghi lại sự kiện và theo dõi trong ngày."
+        },
+        {
+          "start_time": "2025-31-23T10:30:00.000Z",
+          "end_time": "2025-31-23T10:33:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Không ghi nhận té ngã, chỉ xuất hiện một vài rung cơ nhẹ.",
+          "actionSuggestion": "Duy trì theo dõi và đảm bảo nghỉ ngơi hợp lý."
+        }
+      ],
+      "mostActivePeriod": "13:00-14:00",
+      "mostAbnormalPeriod": "07:00-07:03",
+      "suggest_summary_daily": "Bệnh nhân chỉ còn xuất hiện các biểu hiện co giật rất nhẹ, không có té ngã. So với những ngày trước, tình trạng cải thiện rõ rệt. Cần tiếp tục theo dõi để xác nhận xu hướng hồi phục ổn định."
+    }
+  ]
+}
