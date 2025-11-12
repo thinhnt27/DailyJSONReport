@@ -39,3 +39,5 @@ COPY --from=build /app/src/data/analyses ./src/data/analyses
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD curl -fsS http://localhost:3000/event-detections/health || exit 1
+
+CMD ["node", "dist/main.js"]
