@@ -1,6 +1,7 @@
 // src/modules/file-manage/application/file-manage.service.ts
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +9,8 @@ import { createReadStream, promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { randomUUID, createHash } from 'crypto';
 import { Debug } from '@prisma/client/runtime/library';
+import { DayDoc } from '@/modules/lm-studio/interface/dto/ai-user-analysis.v2.dto';
+import { LmStudioService } from '@/modules/lm-studio/application/lmstudio.service';
 
 export type SaveJsonInput = {
   subdir?: string; // vẫn dùng được nếu bạn còn cần
@@ -59,8 +62,41 @@ function addUTC(d: Date, days: number): Date {
   return n;
 }
 
+function normalizeDateStr(s: string) {
+  // đổi dd/MM/yyyy -> dd-MM-yyyy
+  return s.replace(/\//g, '-');
+}
+function toYYYYMMDD(ddmmyyyy: string): string {
+  // "17-10-2025" -> "20251017"
+  const [dd, mm, yyyy] = ddmmyyyy.split('-');
+  return `${yyyy}${mm}${dd}`;
+}
+// Helper tránh any
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+
+// Chuẩn: không dùng any, không truy cập member trực tiếp
+function isDayDoc(v: unknown): v is DayDoc {
+  if (!isRecord(v)) return false;
+
+  const uid = v['user_id'];
+  const date = v['date'];
+  const analyses = v['analyses'];
+
+  if (typeof uid !== 'string' || typeof date !== 'string') return false;
+  // analyses có thể undefined hoặc mảng
+  if (analyses !== undefined && !Array.isArray(analyses)) return false;
+
+  return true;
+}
+
 @Injectable()
 export class FileManageService {
+  constructor(
+    @Inject(LmStudioService)
+    private readonly lm: LmStudioService,
+  ) {}
   // Thư mục trong repo (có thể đổi bằng ENV)
   private readonly baseDir = join(
     process.cwd(),
@@ -471,5 +507,126 @@ export class FileManageService {
     }
 
     return out;
+  }
+
+  private async archiveOldSummary(uid: string, from: string, to: string) {
+    const summaryDir = join(this.baseDir, 'analyses', uid, 'Summary');
+    const moveDir = join(this.baseDir, 'analyses', uid, 'Move');
+
+    await fs.mkdir(moveDir, { recursive: true });
+
+    const files = await fs.readdir(summaryDir).catch(() => []);
+
+    // Format YYYYMMDD
+    const f = toYYYYMMDD(from);
+    const t = toYYYYMMDD(to);
+    const pattern = `${f}-${t}.json`;
+
+    for (const file of files) {
+      if (file.includes(pattern)) {
+        // move file
+        const src = join(summaryDir, file);
+        const dst = join(moveDir, file);
+
+        await fs.rename(src, dst);
+        console.log(`🟡 Archived old summary file: ${file}`);
+      }
+    }
+  }
+
+  async buildAndSaveUserSummaryFromRange(input: {
+    userId: string;
+    from: string; // dd-MM-yyyy
+    to: string; // dd-MM-yyyy
+  }): Promise<{
+    userId: string;
+    from: string;
+    to: string;
+    filename: string; // Summary/...
+    fullPath: string;
+    size: number;
+    checksum: string;
+    daysCount: number;
+    totalAnalyses: number;
+  }> {
+    const { userId, from, to } = input;
+    if (!userId) throw new BadRequestException('userId is required');
+    if (!DATE_DDMMYYYY.test(from) || !DATE_DDMMYYYY.test(to)) {
+      throw new BadRequestException('from/to must be dd-MM-yyyy');
+    }
+    const start = ddmmyyyyToUTC(from);
+    const end = ddmmyyyyToUTC(to);
+    if (start.getTime() > end.getTime()) {
+      throw new BadRequestException('from must be <= to');
+    }
+
+    const uid = sanitizeUserId(userId);
+
+    // 1) Đọc dữ liệu ngày trong khoảng (kèm data)
+    const items = await this.listUserJsonByDateRange<DayDoc>({
+      userId: uid,
+      from,
+      to,
+      includeData: true,
+    });
+
+    // 2) Chuẩn hoá thành mảng DayDoc tăng dần theo ngày
+    const days: DayDoc[] = items
+      .filter((x): x is typeof x & { data: DayDoc } => isDayDoc(x.data))
+      .map((x) => {
+        const dNorm = normalizeDateStr(x.data.date);
+        const analyses = Array.isArray(x.data.analyses) ? x.data.analyses : [];
+        return { user_id: uid, date: dNorm, analyses };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const daysCount = days.length;
+    const totalAnalyses = days.reduce(
+      (sum, d) => sum + (Array.isArray(d.analyses) ? d.analyses.length : 0),
+      0,
+    );
+    // Trước khi gọi LLM, check và chuyển file về Move nếu có
+    await this.archiveOldSummary(uid, from, to);
+    // 3) Payload tổng
+    const llmOutput = await this.lm.analyzeRangeSummaryV1({
+      user_id: uid,
+      from: start.toISOString(),
+      to: end.toISOString(),
+      days,
+    });
+
+    // Đây là dữ liệu sẽ ghi xuống file
+    const payload = llmOutput;
+
+    // 4) Tên file & ghi: data/analyses/{userId}/Summary/summary_{YYYYMMDD}-{YYYYMMDD}.json
+    const y1 = toYYYYMMDD(from);
+    const y2 = toYYYYMMDD(to);
+    const todayStr = toYYYYMMDD(
+      `${String(new Date().getDate()).padStart(2, '0')}-${String(
+        new Date().getMonth() + 1,
+      ).padStart(2, '0')}-${new Date().getFullYear()}`,
+    );
+    const safeName = `${todayStr}_${y1}-${y2}`;
+
+    const rel = join('analyses', uid, 'Summary', `${safeName}.json`);
+    const fullPath = join(this.baseDir, rel);
+    await fs.mkdir(dirname(fullPath), { recursive: true });
+
+    const buf = Buffer.from(JSON.stringify(payload, null, 2), 'utf-8');
+    await fs.writeFile(fullPath, buf);
+
+    const checksum = createHash('sha256').update(buf).digest('hex');
+
+    return {
+      userId: uid,
+      from,
+      to,
+      filename: rel.replace(/\\/g, '/'),
+      fullPath,
+      size: buf.length,
+      checksum,
+      daysCount,
+      totalAnalyses,
+    };
   }
 }

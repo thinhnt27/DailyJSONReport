@@ -2,10 +2,15 @@
 import { Module } from '@nestjs/common';
 import { FileManageService } from './application/file-manage.service';
 import { FileReadController } from './interface/file-manage.controller';
+import { LmStudioService } from '../lm-studio/application/lmstudio.service';
 
 @Module({
-  providers: [FileManageService],
+  imports: [],
+
+  providers: [FileManageService, LmStudioService],
+
   controllers: [FileReadController],
+
   exports: [FileManageService],
 })
 export class FileManageModule {}

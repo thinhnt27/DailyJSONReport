@@ -7,7 +7,10 @@ import type {
 } from '../interface/dto/ai-user-analysis.dto';
 // import type { FetchResult } from '@/modules/event-detections/domain/repositories/event-detections.repo.interface';
 import { OutputBatch } from '@/modules/event-detections/application/helpers/batch-group.helper';
-import { LMStudioRangePayloadA } from '../interface/dto/ai-user-analysis.v2.dto';
+import {
+  DayDoc,
+  LMStudioRangePayloadA,
+} from '../interface/dto/ai-user-analysis.v2.dto';
 
 @Injectable()
 export class LmStudioService {
@@ -400,6 +403,93 @@ Viết ngắn gọn, rõ ràng, tối đa 3–4 câu
     } finally {
       this.logger.log('LM Studio request end');
     }
+  }
+
+  async analyzeRangeSummaryV1(payload: {
+    user_id: string;
+    from: string; // ISO string
+    to: string; // ISO string
+    days: DayDoc[]; // [{ date, analyses[] }]
+  }): Promise<{
+    start_time: string;
+    end_time: string;
+    status: 'Warning' | 'Danger';
+    aiSummary: string;
+    actionSuggestion: string;
+  }> {
+    const systemPrompt = `
+Bạn là hệ thống AI tổng hợp các sự kiện bất thường của bệnh nhân trong một khoảng thời gian dài (nhiều ngày).
+
+Nhiệm vụ:
+1) Đọc toàn bộ dữ liệu các ngày trong payload.days.
+2) Tổng hợp lại các sự kiện bất thường (té ngã, co giật, bất tỉnh, nguy hiểm…) thành một bản tóm tắt ngắn gọn.
+3) Xác định mức độ nguy hiểm chung của toàn giai đoạn:
+   - Nếu có ít nhất 1 sự kiện 'Danger' → status = "Danger".
+   - Nếu KHÔNG có Danger nhưng có >=1 Warning → "Warning".
+4) Viết 100% tiếng Việt, không xen tiếng Anh.
+5) Tuyệt đối không bịa thêm sự kiện — chỉ được tóm tắt từ dữ liệu thật.
+6) Không trả về mảng, không văn bản ngoài JSON.
+
+ĐẦU RA CHỈ GỒM MỘT OBJECT JSON DUY NHẤT:
+{
+  "start_time": "...",
+  "end_time": "...",
+  "status": "Warning" | "Danger",
+  "aiSummary": "Chuỗi mô tả tóm tắt 3-5 câu",
+  "actionSuggestion": "Khuyến nghị cần làm..."
+}
+`.trim();
+
+    const responseSchema: OpenAI.ResponseFormatJSONSchema = {
+      type: 'json_schema',
+      json_schema: {
+        name: 'range_summary_v1',
+        schema: {
+          type: 'object',
+          properties: {
+            start_time: { type: 'string' },
+            end_time: { type: 'string' },
+            status: { type: 'string', enum: ['Warning', 'Danger'] },
+            aiSummary: { type: 'string' },
+            actionSuggestion: { type: 'string' },
+          },
+          required: [
+            'start_time',
+            'end_time',
+            'status',
+            'aiSummary',
+            'actionSuggestion',
+          ],
+          additionalProperties: false,
+        },
+      },
+    };
+
+    const completion = await this.client.chat.completions.create({
+      model: 'mistralai_mistral-7b-instruct-v0.3-f16.gguf',
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: JSON.stringify(payload) },
+      ],
+      response_format: responseSchema,
+    });
+
+    const raw = completion.choices?.[0]?.message?.content ?? '{}';
+
+    const first = raw.indexOf('{');
+    const last = raw.lastIndexOf('}');
+    const jsonText =
+      first >= 0 && last > first ? raw.slice(first, last + 1) : raw;
+
+    const parsed: unknown = JSON.parse(jsonText);
+    return parsed as {
+      start_time: string;
+      end_time: string;
+      status: 'Warning' | 'Danger';
+      aiSummary: string;
+      actionSuggestion: string;
+    };
   }
 }
 
