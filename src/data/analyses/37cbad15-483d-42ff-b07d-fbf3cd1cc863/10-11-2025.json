@@ -1,0 +1,27 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "11/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-10T23:05:12.000Z",
+          "end_time": "2025-11-10T23:05:12.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen mất thăng bằng. Đáng lo là có thể gặp tai nạn trong các hoạt động hàng ngày.",
+          "actionSuggestion": "Cần theo dõi và rà soát lại thói quen của bệnh nhân để phòng tránh tai nạn."
+        },
+        {
+          "start_time": "2025-11-10T23:48:33.000Z",
+          "end_time": "2025-11-10T23:48:33.000Z",
+          "status": "Danger",
+          "aiSummary": "Nguy hiểm: CO Giật: Cử động mạnh bất thường (71%). Description: Ngủ trưa hoặc ngủ tối theo lịch - bản mẫu kiểm thử. Medical History: Hen tuổi thơ, phần lớn được kiểm soát ở tuổi trưởng thành.",
+          "actionSuggestion": "The patient should be monitored for any further abnormal behaviors and verified by a medical professional as soon as possible."
+        }
+      ],
+      "mostActivePeriod": "06:05-06:05",
+      "mostAbnormalPeriod": "06:48-06:48"
+    }
+  ]
+}

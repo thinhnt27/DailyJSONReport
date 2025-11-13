@@ -1,56 +1,27 @@
 {
   "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
-  "date": "04/11/2025",
+  "date": "05/11/2025",
   "analyses": [
     {
       "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
       "dailyActivityLog": [
         {
-          "start_time": "2025-11-03T21:00:00.000Z",
-          "end_time": "2025-11-03T21:03:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Xuất hiện co giật nhẹ cuối ngày.",
-          "actionSuggestion": "Theo dõi mức độ mệt sau cơn."
-        },
-        {
-          "start_time": "2025-11-03T23:30:00.000Z",
-          "end_time": "2025-11-03T23:33:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Cơn co giật ngắn, thời gian dưới 3 phút.",
-          "actionSuggestion": "Ghi nhận vào nhật ký theo dõi."
-        },
-        {
-          "start_time": "2025-11-04T04:20:00.000Z",
-          "end_time": "2025-11-04T04:23:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Bệnh nhân có một cơn co giật nhẹ vào sáng sớm.",
-          "actionSuggestion": "Theo dõi và ghi lại chi tiết thời điểm."
-        },
-        {
-          "start_time": "2025-11-04T09:40:00.000Z",
-          "end_time": "2025-11-04T09:43:00.000Z",
+          "start_time": "2025-11-05T00:00:12.000Z",
+          "end_time": "2025-11-05T00:14:20.000Z",
           "status": "Danger",
-          "aiSummary": "Cơn co giật toàn thân kéo dài, có mất kiểm soát tạm thời.",
-          "actionSuggestion": "Cần can thiệp y tế khẩn cấp."
+          "aiSummary": "Bệnh nhân có 12 sự kiện ngã, chiếm 66% số lần trích xuất dữ liệu, với độ tin cậy trung bình là 71%. Bảng tóm tắt chi tiết như sau:",
+          "actionSuggestion": "Cảnh báo cho bệnh nhân về nguy cơ ngã, hướng dẫn bệnh nhân thực hiện các hoạt động an toàn, theo dõi và kiểm tra liên quan."
         },
         {
-          "start_time": "2025-11-04T11:30:00.000Z",
-          "end_time": "2025-11-04T11:33:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Bệnh nhân té ngã sau cơn co giật.",
-          "actionSuggestion": "Theo dõi chấn thương sau ngã."
-        },
-        {
-          "start_time": "2025-11-04T11:50:00.000Z",
-          "end_time": "2025-11-04T11:53:00.000Z",
+          "start_time": "2025-11-05T00:15:49.000Z",
+          "end_time": "2025-11-05T00:18:39.000Z",
           "status": "Danger",
-          "aiSummary": "Một cơn co giật mạnh khác tái diễn.",
-          "actionSuggestion": "Giám sát y tế liên tục trong đêm."
+          "aiSummary": "Bệnh nhân có một số hành vi bất thường trong ngày 5/11/2025. Vào lúc 00:15:49, bệnh nhân có dấu hiệu co giật toàn thân với độ tin cậy 84%. Sau đó, bệnh nhân tiếp tục có biểu hiện co giật mạnh vùng tay và vai vào lúc 00:17:10 với độ tin cậy 77% và rung giật nhịp nhanh kéo dài vào lúc 00:18:39 với độ tin cậy 82%.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú các hành vi bất thường; cần xem xét lại lịch sử bệnh của bệnh nhân."
         }
       ],
-      "mostActivePeriod": "18:00-23:30",
-      "mostAbnormalPeriod": "09:40-09:43",
-      "suggest_summary_daily": "Tình trạng co giật và té ngã tăng rõ rệt, nhiều sự kiện liên tiếp trong ngày. Chu kỳ tái phát đạt đỉnh và có xu hướng nặng hơn so với các lần trước."
+      "mostActivePeriod": "07:00-07:14",
+      "mostAbnormalPeriod": "07:00-07:14"
     }
   ]
 }

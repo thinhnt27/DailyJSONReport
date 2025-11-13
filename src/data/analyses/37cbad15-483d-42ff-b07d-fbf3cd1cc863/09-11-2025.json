@@ -1,0 +1,34 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "10/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-09T22:00:00.000Z",
+          "end_time": "1970-01-01T06:30:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa hoặc tối, không phù hợp với lứa tuổi; có thể do rối loạn giấc ngủ; cần theo dõi và kiểm tra.",
+          "actionSuggestion": "Khám bệnh, theo dõi giấc ngủ, đề nghị thay đổi thói quen."
+        },
+        {
+          "start_time": "2025-11-09T22:30:00.000Z",
+          "end_time": "2025-11-09T06:30:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Ngưới có 4 sự kiện bất thường trong ngày, gồm 2 sự kiện ngã và 2 sự kiện thay đổi hành vi. Mức độ nguy hiểm được đánh giá là Warning. Không đủ dữ liệu về giấc ngủ, cần theo dõi.",
+          "actionSuggestion": "Theo dõi và kiểm tra lại thói quen ngủ/thức cũng như các sự kiện bất thường trong ngày để có thể phòng ngừa better. Nếu có triệu chứng giống bệnh sử, hãy liên hệ với lịch sử bệnh để tham chiếu."
+        },
+        {
+          "start_time": "2025-11-09T23:02:45.000Z",
+          "end_time": "2025-11-09T23:02:45.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có một sự kiện bất thường vào lúc 23:02 ngày 9/11/2025, liên quan đến động tác tay bất thường với xác suất 72%. Mức độ nguy hiểm được đánh giá là 'Nguy hiểm'.",
+          "actionSuggestion": "Kết hợp thói quen ngủ và lịch sử bệnh để có thể phòng ngừa tình trạng bất thường hơn."
+        }
+      ],
+      "mostActivePeriod": "06:02-06:02",
+      "mostAbnormalPeriod": "06:02-06:02"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "09/11/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "2025-11-08T22:00:12.000Z",
+          "end_time": "2025-11-08T23:03:10.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa hay tối, nhưng không được điều chỉnh. Vui lòng thay đổi thói quen này để sức khỏe tốt hơn. Không đủ dữ liệu về thể trạng và bệnh sử.",
+          "actionSuggestion": "Thay đổi thói quen ngủ - thức dậy. Xác nhận lại lịch sử bệnh."
+        },
+        {
+          "start_time": "2025-11-08T22:30:00.000Z",
+          "end_time": "2025-11-08T06:30:00.000Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa/tối theo lịch, hiện tại đã phát sinh sự kiện nguy hiểm (tè ngã) với mức độ tự tin 69%. Cần theo dõi và kiểm tra thêm.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh"
+        },
+        {
+          "start_time": "2025-11-08T23:15:22.000Z",
+          "end_time": "2025-11-08T23:20:05.000Z",
+          "status": "Warning",
+          "aiSummary": "Today, the patient demonstrated abnormal behavior with a CO GIẬT rate of 52% at 23:15:22, which is a warning sign for potential health issues. Also, another abnormal event of type fall was detected at 23:17:40 with a confidence score of 57%, indicating that the patient may have fallen down. Later on at 23:20:05, there was again an instance of CO GIẬT with a rate of 36% which is also considered a warning sign for potential health issues. Based on this data, it seems like the patient requires close monitoring and possibly some adjustments to their daily routine or sleep patterns.",
+          "actionSuggestion": "The patient should be asked about their sleep patterns and any changes that have been made recently. It would also be good to ask them if they have noticed any unusual symptoms or events over the last few days."
+        }
+      ],
+      "mostActivePeriod": "05:00-06:03",
+      "mostAbnormalPeriod": "05:00-06:03"
+    }
+  ]
+}

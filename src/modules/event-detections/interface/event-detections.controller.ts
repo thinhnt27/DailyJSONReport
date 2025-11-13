@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { EventDetectionsService } from '../application/event-detections.service';
 import type { FetchResult } from '../domain/repositories/event-detections.repo.interface';
 import { FetchEventsQueryDto } from './dto/fetch-events.dto';
@@ -88,5 +95,37 @@ export class EventDetectionsController {
     const { y: fy, m: fm, d: fd } = this.getVnYmd(fromDate);
     const fromStr = this.noonString(fy, fm, fd);
     return this.service.fetchEventsAndHabitsByRangesV2(fromStr, toStr);
+  }
+
+  @Get('fetch-range-manual')
+  async manualFetchRange(
+    @Query('from') fromStr: string,
+    @Query('to') toStr: string,
+  ) {
+    if (!fromStr || !toStr) {
+      throw new BadRequestException('from and to are required');
+    }
+
+    // 🔥 Bạn có thể validate format “YYYY-MM-DD HH:mm:ss+07:00”
+    if (!/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\+\d{2}:?\d{2}$/.test(fromStr)) {
+      throw new BadRequestException(`Invalid from format: ${fromStr}`);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\+\d{2}:?\d{2}$/.test(toStr)) {
+      throw new BadRequestException(`Invalid to format: ${toStr}`);
+    }
+
+    // 🔥 Gọi service y chang Cron
+    const result = await this.service.fetchEventsAndHabitsByRanges(
+      fromStr,
+      toStr,
+    );
+
+    return {
+      success: true,
+      from: fromStr,
+      to: toStr,
+      result,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

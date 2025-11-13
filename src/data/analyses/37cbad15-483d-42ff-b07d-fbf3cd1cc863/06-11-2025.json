@@ -1,56 +1,41 @@
 {
   "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
-  "date": "06/11/2025",
+  "date": "07/11/2025",
   "analyses": [
     {
       "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
       "dailyActivityLog": [
         {
-          "start_time": "2025-11-05T13:15:00.000Z",
-          "end_time": "2025-11-05T13:18:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Một cơn co giật nhẹ tái diễn ngắn, không gây té ngã.",
-          "actionSuggestion": "Tiếp tục quan sát để xác nhận xu hướng cải thiện."
+          "start_time": "2020-11-06T22:30:00.000Z",
+          "end_time": "2020-11-06T23:16:40.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có giấc ngủ không ổn định, nhất là giấc ngủ trưa. Trong thời gian này, bệnh nhân đã có một số hành vi bất thường. Nếu tiếp tục như vậy có thể gây nhiều rối loạn về sức khỏe",
+          "actionSuggestion": "Khuyến cáo bệnh nhân về thói quen ngủ/thức, tăng cường khả năng nhận thức về giấc ngủ và các triệu chứng bất thường."
         },
         {
-          "start_time": "2025-11-05T17:00:00.000Z",
-          "end_time": "2025-11-05T17:03:00.000Z",
+          "start_time": "2025-11-06T22:00:00.000Z",
+          "end_time": "2025-11-06T23:20:50.000Z",
           "status": "Warning",
-          "aiSummary": "Xuất hiện co giật nhỏ cuối ngày, không có biến chứng.",
-          "actionSuggestion": "Theo dõi thêm trong 24 giờ tới."
+          "aiSummary": "Bệnh nhân có 14 sự kiện ngã trong ngày, với tần suất cao nhất là 3 sự kiện và thấp nhất là 1 sự kiện. Các sự kiện ngã thường xảy ra khi bệnh nhân di chuyển, thay đổi vị trí, hoặc khi đang sử dụng các đồ dùng. Bệnh nhân cũng có thói quen ngủ trưa và ngủ tối theo lịch.",
+          "actionSuggestion": "Phải tăng cường giám sát bệnh nhân để ngăn ngừa tai nạn, đặc biệt là trong thời gian di chuyển. Cần phải kiểm tra lại thói quen ngủ của bệnh nhân."
         },
         {
-          "start_time": "2025-11-05T21:20:00.000Z",
-          "end_time": "2025-11-05T21:23:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Bệnh nhân rung cơ nhẹ khi nghỉ, không phát triển thành cơn co giật.",
-          "actionSuggestion": "Tiếp tục theo dõi để đánh giá tình trạng ổn định lâu dài."
+          "start_time": "2025-11-06T23:02:55.000Z",
+          "end_time": "2025-11-06T23:02:55.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có triệu chứng co giật toàn thân, cần theo dõi và kiểm tra ngay lập tức.",
+          "actionSuggestion": "Tham khảo y khoa, đo điện não đồ, kiểm tra thói quen ngủ/thức, đối chiếu với lịch sử bệnh."
         },
         {
-          "start_time": "2025-11-06T03:30:00.000Z",
-          "end_time": "2025-11-06T03:33:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Bệnh nhân xuất hiện rung cơ nhẹ, không diễn tiến thành co giật.",
-          "actionSuggestion": "Theo dõi và ghi lại sự kiện để đối chiếu với lịch sử."
-        },
-        {
-          "start_time": "2025-11-06T07:10:00.000Z",
-          "end_time": "2025-11-06T07:13:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Ghi nhận một cơn co giật ngắn, tự dừng sau vài phút.",
-          "actionSuggestion": "Theo dõi tần suất để xác định xu hướng ổn định."
-        },
-        {
-          "start_time": "2025-11-06T10:45:00.000Z",
-          "end_time": "2025-11-06T10:48:00.000Z",
-          "status": "Warning",
-          "aiSummary": "Bệnh nhân có biểu hiện run nhẹ, không mất thăng bằng.",
-          "actionSuggestion": "Ghi nhận dữ liệu để theo dõi sự hồi phục hoàn toàn."
+          "start_time": "2025-11-06T23:09:45.000Z",
+          "end_time": "2025-11-06T23:09:45.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có hành vi bất thường, co giật nhẹ trong vài giây.",
+          "actionSuggestion": "Theo dõi và kiểm tra bệnh nhân để đảm bảo an toàn."
         }
       ],
-      "mostActivePeriod": "07:00-21:30",
-      "mostAbnormalPeriod": "07:10-07:13",
-      "suggest_summary_daily": "Bệnh nhân chỉ còn các cơn co giật nhẹ, không có té ngã hay dấu hiệu nguy hiểm. Tình trạng ổn định rõ rệt so với các ngày trước. Chu kỳ tái phát dường như đã kết thúc, nhưng vẫn cần theo dõi để xác nhận duy trì ổn định."
+      "mostActivePeriod": "05:00-06:20",
+      "mostAbnormalPeriod": "05:30-06:16"
     }
   ]
 }
