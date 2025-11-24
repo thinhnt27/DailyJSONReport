@@ -1,21 +1,29 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '../../infra/prisma/prisma.service';
-import { PatientHabitService } from './application/patient-habit.service';
-import { PatientHabitController } from './interface/patient-habit.controller';
-import { PatientHabitRepository } from './domain/repositories/patient-habit.repo.interface';
-import { PatientHabitRepoPrisma } from './infra/prisma/patient-habit.repo';
+import { HttpModule } from '@nestjs/axios';
+
+import { PATIENT_HABITS_REPO } from './domain/repositories/patient-habit.repo.interface';
+import { PatientHabitsRepository } from './infra/prisma/patient-habit.repo';
+
+import { PatientHabitsService } from './application/patient-habit.service';
+import { PatientHabitsCron } from './application/patient-habits.cron';
+
+import { LmStudioService } from '@/modules/lm-studio/application/lmstudio.service';
+import { PrismaService } from '@/infra/prisma/prisma.service';
 
 @Module({
-  controllers: [PatientHabitController],
+  imports: [HttpModule],
   providers: [
+    PrismaService,
     {
-      provide: PatientHabitRepository,
+      provide: PATIENT_HABITS_REPO,
       useFactory: (prisma: PrismaService) =>
-        new PatientHabitRepoPrisma(prisma.client),
+        new PatientHabitsRepository(prisma.client),
       inject: [PrismaService],
     },
-    PatientHabitService,
+    PatientHabitsService,
+    PatientHabitsCron,
+    LmStudioService,
   ],
-  exports: [PatientHabitService, PatientHabitRepository],
+  exports: [PatientHabitsService, PATIENT_HABITS_REPO],
 })
-export class PatientHabitModule {}
+export class PatientHabitsModule {}

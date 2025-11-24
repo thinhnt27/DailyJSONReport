@@ -240,6 +240,8 @@ model patient_habits {
   user_id                String                   @db.Uuid
   sleep_start            DateTime?                @db.Time(6)
   sleep_end              DateTime?                @db.Time(6)
+  number_day             Int?
+  day_to_check           DateTime?                @db.Date
   patient_supplements    patient_supplements?     @relation(fields: [supplement_id], references: [id], onDelete: Cascade)
   users                  users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   patient_sleep_checkins patient_sleep_checkins[]
@@ -666,6 +668,8 @@ model access_grants {
   permission_scopes                       Json?    @default("{}")
   created_at                              DateTime @default(now()) @db.Timestamptz(6)
   updated_at                              DateTime @db.Timestamptz(6)
+  is_active                               Boolean  @default(true)
+  version                                 Int      @default(1)
   users_access_grants_caregiver_idTousers users    @relation("access_grants_caregiver_idTousers", fields: [caregiver_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
   users_access_grants_customer_idTousers  users    @relation("access_grants_customer_idTousers", fields: [customer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 
