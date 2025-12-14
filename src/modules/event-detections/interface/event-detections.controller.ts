@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -11,6 +12,7 @@ import type { FetchResult } from '../domain/repositories/event-detections.repo.i
 import { FetchEventsQueryDto } from './dto/fetch-events.dto';
 // import { AiUserAnalysis } from '@/modules/lm-studio/interface/dto/ai-user-analysis.dto';
 import { AiUserAnalysisV2 } from '@/modules/lm-studio/interface/dto/ai-user-analysis.v2.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('event-detections')
 export class EventDetectionsController {
@@ -126,6 +128,39 @@ export class EventDetectionsController {
       to: toStr,
       result,
       timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Post('analyze')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        date: {
+          type: 'string',
+          example: '2025-10-14',
+        },
+        user_ids: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          example: ['82f8c132-72e0-4c77-97a6-9c2a12dc1c49'],
+        },
+      },
+      required: ['date'],
+    },
+  })
+  async analyzeByUserIdAndDay(
+    @Body('date') date: string,
+    @Body('user_ids') userIds?: string[],
+  ) {
+    await this.service.runAnalysisByDateAndUsers(date, userIds);
+
+    return {
+      ok: true,
+      date,
+      users: userIds ?? 'ALL',
     };
   }
 }

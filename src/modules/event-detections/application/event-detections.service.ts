@@ -81,6 +81,7 @@ export class EventDetectionsService {
     const targetIds = new Set([
       '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
       '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
+      '37cbad15-483d-42ff-b07d-fbf3cd1cc863',
     ]);
 
     const targetedBatches = batchesWarnDanger.filter(
@@ -158,7 +159,7 @@ export class EventDetectionsService {
       excludeNormal: true, // mặc định đã true
     });
     this.logger.log(
-      `fetchEventsAndAnalyze: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
+      `fetchEventsAndAnalyzeToFile: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
     );
     // các user cần chạy
     const targetIds = new Set([
@@ -171,7 +172,7 @@ export class EventDetectionsService {
     );
 
     this.logger.log(
-      `fetchEventsAndAnalyze: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
+      `fetchEventsAndAnalyzeToFile: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
     );
 
     for (const [idx, batch] of targetedBatches.entries()) {
@@ -375,6 +376,61 @@ export class EventDetectionsService {
     for (const w of writes) {
       this.logger.log(` - ${w.fullPath} (${w.size}B) created=${w.created}`);
     }
+  }
+
+  async runAnalysisByDateAndUsers(
+    date: string, // '2025-10-14'
+    userIds?: string[], // optional
+  ): Promise<void> {
+    // build noon window VN
+    const from = new Date(`${date}T12:00:00+07:00`);
+    const to = new Date(from.getTime() + 24 * 3600_000);
+
+    const raw = await fetchEventsAndHabitsByRange(this.repo, from, to);
+
+    const events =
+      (raw['event-detections'] as Array<Record<string, unknown>>) ?? [];
+    const supplementMap =
+      (raw.supplement as Record<string, Record<string, unknown>>) ?? {};
+
+    // filter theo user nếu có
+    const filteredEvents = userIds?.length
+      ? events.filter((e) => userIds.includes(e.user_id as string))
+      : events;
+
+    const users = Array.from(
+      new Set(filteredEvents.map((e) => e.user_id as string)),
+    ).map((uid) => ({
+      user_id: uid,
+      'event-detections': filteredEvents.filter((e) => e.user_id === uid),
+      supplement: supplementMap[uid] ?? null,
+    }));
+
+    const batches = UsersBatchGrouper.group(users, {
+      excludeNormal: true,
+    });
+
+    const userResults: AiUserAnalysis[] = [];
+
+    for (const batch of batches) {
+      const out = await this.lmStudio.analyzeEventData(batch);
+      const arr = Array.isArray(out) ? out : [out];
+      userResults.push(...arr);
+    }
+
+    const byUser = new Map<string, AiUserAnalysis[]>();
+    for (const r of userResults) {
+      const uid = r.user_id!;
+      (byUser.get(uid) ?? byUser.set(uid, []).get(uid)!).push(r);
+    }
+
+    const resultsV2 = Array.from(byUser.values()).map((arr) =>
+      foldUserAnalysesToV2(arr),
+    );
+
+    await this.files.saveAnalysesTriggerByUser({
+      items: resultsV2,
+    });
   }
 
   async fetchEventsAndHabitsByRangesV2(

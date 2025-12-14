@@ -1,0 +1,307 @@
+{
+  "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+  "date": "13/12/2025",
+  "analyses": [
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "1970-01-01T00:00:00.000Z",
+          "end_time": "1970-01-01T23:59:59.999Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có 4 sự kiện bất thường trong ngày, thời gian xảy ra từ 07:34 đến 07:39 giờ. Giờ ngủ và thức không được mô tả rõ ràng.",
+          "actionSuggestion": "Theo dõi và kiểm tra thêm các hành vi bất thường."
+        },
+        {
+          "start_time": "2025-12-13T07:07:05.476Z",
+          "end_time": "2025-12-13T07:07:05.476Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa hay tối. Mục tiêu của aiSummary là tóm tắt trạng thái trong ngày, mô tả điểm nổi bật và so sánh giấc ngủ.",
+          "actionSuggestion": "Chỉ dẫn cho bệnh nhân nên có thói quen ngủ và nghỉ ngơi hợp lý"
+        },
+        {
+          "start_time": "2025-12-13T07:12:06.507Z",
+          "end_time": "2025-12-13T07:14:19.582Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có nguy cơ ngã và thói quen ngủ bất thường. Cần theo dõi chu kỳ ngủ và phát triển các kế hoạch an toàn.",
+          "actionSuggestion": "Theo dõi chu kỳ ngủ, phát triển kế hoạch an toàn"
+        },
+        {
+          "start_time": "2025-12-13T07:21:46.574Z",
+          "end_time": "2025-12-13T07:21:46.574Z",
+          "status": "Danger",
+          "aiSummary": "Cậu ông 60 kg, 180 cm đã có tiền sử hen suyễn khi trẻ nhưng được kiểm soát tốt tại tuổi trưởng thành. Vừa qua, có sự kiện co giật được xác nhận là một cụ ông bị co giật trong giường với độ tin cậy 76%. Do đó, cần theo dõi và rà soát thêm.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-12-13T07:23:27.177Z",
+          "end_time": "2025-12-13T07:28:34.133Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có nguy cơ ngã và hành vi bất thường trong ngày 13/12/2025. Giấc ngủ mô tả là 22:00 - 06:00, nhưng không thấy giờ số hợp lệ. Không đủ dữ liệu để so sánh giấc ngủ. Bệnh sử gồm rối loạn tiền đình, rối loạn giấc ngủ, hen tuổi thơ được kiểm soát tốt.",
+          "actionSuggestion": "Khuyến cáo bệnh nhân cần theo dõi và kiểm tra lại thói quen và giấc ngủ định kỳ, cũng như cần có someone để quan sát trong ngày 14/12/2025."
+        },
+        {
+          "start_time": "2025-12-13T07:36:16.391Z",
+          "end_time": "2025-12-13T07:37:54.131Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ cao do té ngã và cảnh báo về tình trạng khẩn cấp; cần theo dõi chặt chẽ và kiểm tra lại lịch sử bệnh để tham chiếu.",
+          "actionSuggestion": "Cần theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh các hành vi của bệnh nhân trong 24 giờ tiếp theo"
+        },
+        {
+          "start_time": "2025-12-13T07:44:19.169Z",
+          "end_time": "2025-12-13T07:44:19.169Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có thể trạng bình thường, thói quen ngủ ổn định, nhưng đã xảy ra tai nạn ngã trong ngày. Không thấy dấu hiệu bệnh lý liên quan trực tiếp. ",
+          "actionSuggestion": "Tham gia vào các hoạt động tập thể dục để tăng cường sức khỏe"
+        },
+        {
+          "start_time": "2025-12-13T07:46:56.668Z",
+          "end_time": "2025-12-13T07:55:50.411Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen bất thường về giấc ngủ và hành vi, cần được theo dõi và điều chỉnh môi trường ngủ. Nếu tình trạng nghiêm trọng hơn cần được cấp cứu ngay lập tức.",
+          "actionSuggestion": "Cần kiểm tra và điều chỉnh thói quen ngủ/thức của bệnh nhân, không để tình trạng rối loạn giấc ngủ kéo dài."
+        },
+        {
+          "start_time": "2025-12-13T07:59:00.572Z",
+          "end_time": "2025-12-13T08:00:36.209Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ động kinh cấp tính; Đang trong tình trạng co giật toàn thân; Cần được theo dõi sát và chuẩn bị thuốc chống co giật.",
+          "actionSuggestion": "Cần được theo dõi sát và chuẩn bị thuốc chống co giật."
+        },
+        {
+          "start_time": "2025-12-13T08:10:55.284Z",
+          "end_time": "2025-12-13T08:17:16.319Z",
+          "status": "Warning",
+          "aiSummary": "Cơ thể người có nhiều thói quen và hành vi khác nhau trong một ngày. Mặc dù vậy, chúng ta vẫn cần phải quan sát và kiểm tra các thói quen này để có thể phát hiện ra những thay đổi bất thường. Theo các dữ liệu có sẵn, hôm nay có 3 sự kiện bất thường được phát hiện. Lần đầu là khi một cụ bà có hành động bất thường vào lúc 08:10:55 AM với độ tin cậy 0.782 và đã được xác nhận. Lần thứ hai là khi một cụ ông bị co giật trong giường vào lúc 08:15:48 AM với độ tin cậy 0.93 và đã được cấp cứu. Lần thứ ba là khi một cụ ông có thói quen ngủ không bình thường vào lúc 08:17:16 AM với độ tin cậy 0.882. Tất cả các sự kiện này cho thấy rằng cơ thể người cần phải được quan sát và chăm sóc kỹ lưỡng hơn.",
+          "actionSuggestion": "Cần theo dõi chặt chẽ thói quen và hành vi của bệnh nhân, đặc biệt là về giấc ngủ. Nếu có sự thay đổi bất thường cần phải kiểm tra lại."
+        },
+        {
+          "start_time": "2025-12-13T08:15:03.476Z",
+          "end_time": "2025-12-13T08:22:32.871Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nhiều sự kiện nguy hiểm trong ngày 13/12/2025. Trước tiên, bệnh nhân có một sự kiện co giật, sau đó là sự kiện té ngã và cuối cùng là sự kiện co giật khác. Mặc dù đã có một số hành vi nguy hiểm nhưng vẫn chưa đủ dữ liệu để xác nhận.",
+          "actionSuggestion": "Cần theo dõi sát bệnh nhân, kiểm tra sức khỏe thường xuyên và phải có phương án ứng phó trong trường hợp khẩn cấp."
+        },
+        {
+          "start_time": "2025-12-13T08:30:15.031Z",
+          "end_time": "2025-12-13T08:31:13.519Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ không bình thường và một hành vi bất thường. Cần theo dõi thêm.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú."
+        },
+        {
+          "start_time": "2025-12-13T08:32:21.693Z",
+          "end_time": "2025-12-13T08:32:21.693Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có cơn động kinh đột ngột và hiện đang trong trạng thái nguy hiểm; cần được theo dõi sát, không đủ dữ liệu về thói quen ngủ/thức và bệnh sử.",
+          "actionSuggestion": "Cần phát lệnh cấp cứu và điều trị ngay lập tức."
+        },
+        {
+          "start_time": "2025-12-13T08:39:37.877Z",
+          "end_time": "2025-12-13T08:51:08.855Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có một số sự kiện bất thường trong ngày, bao gồm 7 sự kiện về hành vi bất thường, 1 sự kiện co giật và 1 sự kiện té ngã. Các bác sĩ đã được thông báo về rối loạn giấc ngủ. Phải theo dõi sát tình trạng bệnh nhân.",
+          "actionSuggestion": "Theo dõi chu kỳ ngủ, cần kiểm tra thêm"
+        },
+        {
+          "start_time": "2025-12-13T08:41:50.102Z",
+          "end_time": "2025-12-13T08:54:29.971Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có 6 sự kiện trong ngày, bao gồm 4 sự kiện nguy hiểm và 2 sự kiện cảnh báo. Giờ ngủ đã được mô tả là từ 22:00 đến 06:00, tuy nhiên không đủ dữ liệu để so sánh với giờ số. Dựa trên các sự kiện đã được ghi nhận, bệnh nhân có nhiều khả năng có rối loạn giấc ngủ. ",
+          "actionSuggestion": "Cần theo dõi sát, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-12-13T09:03:11.525Z",
+          "end_time": "2025-12-13T09:05:46.045Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có cơn co giật, cần được theo dõi sát. Ngủ trưa hoặc ngủ tối theo lịch - bản mẫu kiểm thử. Không thấy dấu hiệu bệnh lý liên quan trực tiếp.",
+          "actionSuggestion": "Theo dõi trạng thái sức khỏe, cần thông báo gia đình. Tạm thời không có đề xuất y khoa."
+        },
+        {
+          "start_time": "2025-12-13T09:03:42.176Z",
+          "end_time": "2025-12-13T09:24:22.530Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có nguy cơ cao về rối loạn giấc ngủ và động kinh, cần theo dõi sát.",
+          "actionSuggestion": "Cần liên hệ bác sĩ để được tư vấn và kiểm tra lại lịch sử bệnh."
+        },
+        {
+          "start_time": "2025-12-13T09:19:09.549Z",
+          "end_time": "2025-12-13T09:19:09.549Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân đã có sự kiện khẩn cấp - co giật; không đủ dữ liệu bệnh sử; thói quen ngủ trưa hoặc tối theo lịch.",
+          "actionSuggestion": "Tham khảo với bác sĩ về thói quen ngủ/thức và sử dụng các phương pháp kiểm soát stress."
+        },
+        {
+          "start_time": "2025-12-13T09:26:18.226Z",
+          "end_time": "2025-12-13T09:30:14.272Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ cao do động kinh và ngã, cần theo dõi sát; giờ ngủ và thức có sự khác biệt rõ ràng, cần điều chỉnh thói quen.",
+          "actionSuggestion": "Theo dõi sát bệnh nhân, kiểm tra và rà soát thói quen, cần thông báo cho gia đình."
+        },
+        {
+          "start_time": "2025-12-13T09:45:50.967Z",
+          "end_time": "2025-12-13T09:45:50.967Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân đã xảy ra tai nạn ngã và không có ghi nhận về thói quen ngủ/thức. Bệnh sử có rối loạn tiền đình.",
+          "actionSuggestion": "Cung cấp dịch vụ y tế để can thiệp tai nạn, kiểm tra thói quen ngủ/thức, liên hệ với lịch sử bệnh"
+        },
+        {
+          "start_time": "2025-12-13T09:50:39.790Z",
+          "end_time": "2025-12-13T09:51:33.174Z",
+          "status": "Warning",
+          "aiSummary": "Cảm cúi hành vi bất thường, có thể do rối loạn giấc ngủ.",
+          "actionSuggestion": "Khám bệnh và điều chỉnh thói quen ngủ."
+        },
+        {
+          "start_time": "2025-12-13T09:56:50.499Z",
+          "end_time": "2025-12-13T09:57:12.430Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có 2 sự kiện báo động trong ngày với confidence_score cao, tình trạng sức khỏe hiện tại là nguy hiểm.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        },
+        {
+          "start_time": "2025-12-13T10:02:18.939Z",
+          "end_time": "2025-12-13T10:02:18.939Z",
+          "status": "Warning",
+          "aiSummary": "Phát hiện lạ - Một cụ bà có hành động bất thường; Ngủ trưa hoặc ngủ tối theo lịch - bản mẫu kiểm thử",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh"
+        },
+        {
+          "start_time": "2025-12-13T10:08:20.493Z",
+          "end_time": "2025-12-13T10:08:22.493Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân đang trong giai đoạn nguy hiểm, có hành vi nghi ngờ. Giấc ngủ mô tả là 22:30 - 06:30, giờ thực tế là 10:08 - 10:10 Z. Không đủ dữ liệu để so sánh giấc ngủ và thóc. Không thấy dấu hiệu bệnh lý liên quan trực tiếp. Gợi ý: Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh.",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh"
+        },
+        {
+          "start_time": "2025-12-13T10:15:22.758Z",
+          "end_time": "2025-12-13T10:15:22.758Z",
+          "status": "Danger",
+          "aiSummary": "Cụ ông 65 tuổi có thói quen ngã; đã có lịch sử bệnh Hen tuổi thơ được kiểm soát; giấc ngủ mô tả là ngủ trưa hoặc tối theo lịch. Today, at 10:15 AM, there was an abnormal event detected with a confidence score of 0.765, which is verified by no one and has not been confirmed yet. This event indicates that the user fell down and this could be related to his medical history of childhood Hen syndrome, which is now well-controlled. Since he has a sleeping habit described as afternoon or nighttime sleep according to schedule, we should pay more attention to his sleeping patterns for potential risks. Please carefully review the user's history and suggest appropriate actions.",
+          "actionSuggestion": "Please monitor the user's sleeping habits and check if there are any signs of unsteadiness or dizziness when he wakes up."
+        },
+        {
+          "start_time": "2025-12-13T10:47:30.899Z",
+          "end_time": "2025-12-13T10:47:30.899Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có hiện tượng ngủ trưa, giấc ngủ không được điều chỉnh, ảnh hưởng đến thói quen sinh hoạt và khả năng công tác.",
+          "actionSuggestion": "Cần thiết phải theo dõi và kiểm tra các biểu hiện bất thường về giấc ngủ, cần có các biện pháp để điều chỉnh thói quen sinh hoạt."
+        },
+        {
+          "start_time": "2025-12-13T12:11:25.431Z",
+          "end_time": "2025-12-13T12:11:25.431Z",
+          "status": "Danger",
+          "aiSummary": "",
+          "actionSuggestion": ""
+        },
+        {
+          "start_time": "2025-12-13T20:34:18.075Z",
+          "end_time": "2025-12-13T20:34:18.075Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngã và rối loạn giấc ngủ, đã được xác nhận là rối loạn giấc ngủ. Bây giờ cần phải theo dõi và kiểm tra để phòng chống tai nạn.",
+          "actionSuggestion": "Cần theo dõi thêm"
+        }
+      ],
+      "mostActivePeriod": "07:00-06:59",
+      "mostAbnormalPeriod": "15:41-15:54"
+    },
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "1970-01-01T00:00:00.000Z",
+          "end_time": "1970-01-01T23:59:59.999Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có thói quen ngủ trưa hoặc tối theo lịch và đã có bệnh sử hen tuổi thơ được kiểm soát phần lớn, nhưng hôm nay đã có sự kiện ngã trong phòng tắm.",
+          "actionSuggestion": "Khuyến cáo bệnh nhân phải tăng cường các biện pháp an toàn tại nhà, đặc biệt là trong các phòng tắm."
+        },
+        {
+          "start_time": "2025-12-12T18:44:55.662Z",
+          "end_time": "2025-12-12T18:44:55.662Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có nguy cơ động kinh cấp tính. Bắt đầu ngay lập tức các bước để xử lý tình huống này.",
+          "actionSuggestion": "Động kinh cấp tính là một tình huống y tế khẩn cấp, người bệnh cần được đưa đến trung tâm y tế gần nhất để được điều trị kịp thời."
+        },
+        {
+          "start_time": "2025-12-12T19:55:07.704Z",
+          "end_time": "2025-12-12T19:55:07.704Z",
+          "status": "Warning",
+          "aiSummary": "Phụ nữ có triệu chứng co giật - Cảnh báo động kinh",
+          "actionSuggestion": "Khám bệnh, rà soát, ghi chú"
+        },
+        {
+          "start_time": "2025-12-12T19:56:56.694Z",
+          "end_time": "2025-12-12T19:56:56.694Z",
+          "status": "Warning",
+          "aiSummary": "Rối loạn giấc ngủ - Một người già có biểu hiện mất ngủ nghiêm trọng",
+          "actionSuggestion": "Theo dõi và kiểm tra thói quen ngủ-thức định kỳ"
+        },
+        {
+          "start_time": "2025-12-12T20:03:31.887Z",
+          "end_time": "2025-12-12T20:03:31.887Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có một sự kiện bất thường được phát hiện là 'Phát hiện lạ - Một cụ bà có hành động bất thường' với độ tin cậy 0,77 và trạng thái 'Cảnh báo'.",
+          "actionSuggestion": "Nên theo dõi thêm và kiểm tra để xác định nguyên nhân của hành vi này."
+        },
+        {
+          "start_time": "2025-12-12T20:07:21.787Z",
+          "end_time": "2025-12-12T20:10:34.754Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có 2 sự kiện nguy hiểm trong ngày, bao gồm một phụ nữ 60 tuổi bị ngã và một cụ ông 60 tuổi bị co giật. Mặc dù không có lịch sử bệnh nhưng đã có hai sự kiện nguy hiểm, cần phải theo dõi chặt chẽ và kiểm tra lại. ",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh."
+        }
+      ],
+      "mostActivePeriod": "07:00-06:59",
+      "mostAbnormalPeriod": "03:07-03:10"
+    },
+    {
+      "user_id": "37cbad15-483d-42ff-b07d-fbf3cd1cc863",
+      "dailyActivityLog": [
+        {
+          "start_time": "1970-01-01T22:30:00.000Z",
+          "end_time": "1970-01-01T06:30:00.000Z",
+          "status": "Normal",
+          "aiSummary": "Người bệnh có thói quen ngủ trưa, không có giờ thức dậy, không có hour sleep start and end.",
+          "actionSuggestion": "Cần theo dõi thói quen ngủ và thời gian thức dậy của người bệnh."
+        },
+        {
+          "start_time": "2025-12-12T18:44:55.662Z",
+          "end_time": "2025-12-12T18:44:55.662Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân đã có một sự kiện nguy hiểm là động kinh cấp tính, cần phải được kiểm tra và theo dõi chặt chẽ; Thói quen ngủ của bệnh nhân không ổn định, cần phải được cải thiện; Không thấy dấu hiệu bệnh lý liên quan trực tiếp.",
+          "actionSuggestion": "Theo dõi và kiểm tra tình trạng sức khỏe thường xuyên; Cải thiện thói quen ngủ"
+        },
+        {
+          "start_time": "2025-12-12T19:06:11.977Z",
+          "end_time": "2025-12-12T19:06:11.977Z",
+          "status": "Warning",
+          "aiSummary": "Cẩn thận với nguy cơ ngã, cần có someone hỗ trợ; không đủ dữ liệu về thói quen ngủ-thức; có bệnh sử tim mạch, rối loạn tiền đình.",
+          "actionSuggestion": "Nên được theo dõi và kiểm tra trong 24 giờ sau; cần có someone hỗ trợ để phòng tránh rủi ro; không nên bỏ qua các dấu hiệu bất thường."
+        },
+        {
+          "start_time": "2025-12-12T19:55:07.704Z",
+          "end_time": "1970-01-01T22:30:00.000Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có triệu chứng co giật, là một phụ nữ với lịch sử bệnh về động kinh; thời gian phát sinh là 19:55 PM ngày 12/12/2025.",
+          "actionSuggestion": "Theo dõi bệnh nhân, rà soát lại bệnh sử và kiểm tra thói quen ngủ/thức."
+        },
+        {
+          "start_time": "2025-12-12T20:03:31.887Z",
+          "end_time": "2025-12-12T20:03:31.887Z",
+          "status": "Warning",
+          "aiSummary": "Bệnh nhân có hành vi bất thường - Ngủ trưa hoặc ngủ tối theo lịch - bản mẫu kiểm thử",
+          "actionSuggestion": "Theo dõi, kiểm tra, đối chiếu, rà soát, ghi chú hoặc xác minh"
+        },
+        {
+          "start_time": "2025-12-12T20:07:21.787Z",
+          "end_time": "2025-12-12T20:10:34.754Z",
+          "status": "Danger",
+          "aiSummary": "Bệnh nhân có nguy cơ cao do đã có 2 sự kiện “ngã” và “cấp cứu”. Giấc ngủ của bệnh nhân không ổn định, nên cần được theo dõi.",
+          "actionSuggestion": "Đề nghị giám sát chặt chẽ, thực hiện các biện pháp phòng ngừa, cần có người quan sát."
+        }
+      ],
+      "mostActivePeriod": "03:07-03:10",
+      "mostAbnormalPeriod": "03:07-03:10"
+    }
+  ]
+}
