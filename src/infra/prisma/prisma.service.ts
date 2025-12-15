@@ -23,33 +23,6 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.prisma.$connect();
-    
-    // Enable query retry for transient errors
-    this.prisma.$use(async (params, next) => {
-      const maxRetries = 3;
-      let retries = 0;
-      
-      while (retries < maxRetries) {
-        try {
-          return await next(params);
-        } catch (error) {
-          retries++;
-          
-          // Retry only for specific transient errors
-          const isPreparedStatementError = 
-            error?.message?.includes('prepared statement') ||
-            error?.message?.includes('does not exist');
-            
-          if (isPreparedStatementError && retries < maxRetries) {
-            // Wait before retry with exponential backoff
-            await new Promise(resolve => setTimeout(resolve, 100 * retries));
-            continue;
-          }
-          
-          throw error;
-        }
-      }
-    });
   }
 
   async onModuleDestroy() {
@@ -59,5 +32,42 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   // Expose the raw client for repository use
   get client(): PrismaClient {
     return this.prisma;
+  }
+
+  /**
+   * Wrapper method to execute queries with retry logic for prepared statement errors
+   */
+  async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries = 3,
+  ): Promise<T> {
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      try {
+        return await operation();
+      } catch (error) {
+        retries++;
+
+        // Check if it's a prepared statement error
+        const isPreparedStatementError =
+          error?.message?.includes('prepared statement') ||
+          error?.message?.includes('does not exist');
+
+        if (isPreparedStatementError && retries < maxRetries) {
+          // Exponential backoff: wait before retry
+          await new Promise((resolve) =>
+            setTimeout(resolve, 100 * retries),
+          );
+          continue;
+        }
+
+        // Re-throw if not a retryable error or max retries reached
+        throw error;
+      }
+    }
+
+    // This should never be reached, but TypeScript needs this
+    throw new Error('Max retries reached');
   }
 }
