@@ -491,6 +491,57 @@ Nhiệm vụ:
       actionSuggestion: string;
     };
   }
+
+  async analyzeSleep(payload: {
+    user_id: string;
+    date: string; // YYYY-MM-DD
+    sleep_start: Date | null;
+    sleep_end: Date | null;
+    sleep: { at: Date };
+    awake: { at: Date };
+  }): Promise<string> {
+    const systemPrompt = `
+Bạn là hệ thống phân tích giấc ngủ của bệnh nhân. 
+Trả về 100% tiếng Việt, không xen tiếng Anh.
+Chỉ trả về DUY NHẤT 1 JSON object.
+
+Yêu cầu:
+- Đánh giá xem bệnh nhân đi ngủ và thức dậy có đúng thói quen không.
+- So sánh sleep_start với thời gian sleep.at
+- So sánh sleep_end với thời gian awake.at
+- Nếu lệch > 60 phút → ghi "bất thường"
+- Nếu trong khoảng ±30 phút → ghi "ổn định"
+- Luôn viết nhận xét bằng tiếng Việt.
+
+JSON output:
+{
+  "date": "YYYY-MM-DD",
+  "quality": "Good | Warning | Bad",
+  "summary": "chuỗi mô tả tiếng Việt",
+  "sleep_at": "ISO",
+  "awake_at": "ISO"
+}
+`.trim();
+
+    const completion = await this.client.chat.completions.create({
+      model: process.env.LM_MODEL ?? 'medgemma-4b-it',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: JSON.stringify(payload) },
+      ],
+      temperature: 0.1,
+    });
+
+    const raw = completion.choices?.[0]?.message?.content ?? '{}';
+
+    // Extract JSON safely
+    const first = raw.indexOf('{');
+    const last = raw.lastIndexOf('}');
+    const jsonText =
+      first >= 0 && last > first ? raw.slice(first, last + 1) : raw;
+
+    return jsonText; // string JSON - đúng thứ bạn save vào file
+  }
 }
 
 type JsonObject = Record<string, unknown>;

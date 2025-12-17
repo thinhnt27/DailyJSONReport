@@ -8,6 +8,8 @@ import { LmStudioService } from './modules/lm-studio/application/lmstudio.servic
 import { FileManageModule } from './modules/file-manage/file-manage.module';
 import { AlarmNotifyConsumer } from './modules/file-manage/application/alarm-notify.consumer';
 import { PgNotifyProvider } from './infra/pg-notify.provider';
+import { PatientHabitsModule } from './modules/patient-habits/patient-habit.module';
+import { PatientCameraModule } from './modules/patient-camera/patient-camera.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { PgNotifyProvider } from './infra/pg-notify.provider';
     EventDetectionsModule,
     FileManageModule,
     HttpModule,
+    PatientHabitsModule,
+    PatientCameraModule,
   ],
   providers: [LmStudioService, PgNotifyProvider, AlarmNotifyConsumer],
 })
