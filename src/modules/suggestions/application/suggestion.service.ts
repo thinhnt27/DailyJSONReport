@@ -9,8 +9,11 @@ import {
   SuggestionAnalyzerService,
   FallRiskAnalysisInput,
 } from './suggestion-analyzer.service';
+import { DeviceCheckAnalyzerService } from './device-check-analyzer.service';
+import { SleepAnalyzerService } from './sleep-analyzer.service';
 import { SuggestionCategory } from '../domain/suggestion.entity';
 import type { suggestions } from '@prisma/client';
+import { PrismaService } from '@/infra/prisma/prisma.service';
 
 @Injectable()
 export class SuggestionService {
@@ -22,6 +25,9 @@ export class SuggestionService {
     @Inject(EVENT_DETECTIONS_REPO)
     private readonly eventRepo: IEventDetectionsRepo,
     private readonly analyzer: SuggestionAnalyzerService,
+    private readonly deviceCheckAnalyzer: DeviceCheckAnalyzerService,
+    private readonly sleepAnalyzer: SleepAnalyzerService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -143,5 +149,112 @@ export class SuggestionService {
    */
   async resolveSuggestion(suggestionId: string): Promise<suggestions> {
     return this.suggestionRepo.resolve(suggestionId);
+  }
+
+  /**
+   * Analyze device/camera quality for a user and create device check suggestions
+   */
+  async analyzeDeviceCheckForUser(userId: string, debug = false): Promise<any> {
+    this.logger.log(`Starting device check analysis for user: ${userId}`);
+    const debugInfo: any = { userId, cameras: [], results: [] };
+
+    try {
+      // Get all cameras for this user
+      const cameras = await this.prisma.client.cameras.findMany({
+        where: { user_id: userId },
+        select: {
+          camera_id: true,
+          camera_name: true,
+          rtsp_url: true,
+          location_in_room: true,
+        },
+      });
+
+      this.logger.log(`Query returned: ${JSON.stringify(cameras)}`);
+      if (debug) debugInfo.cameras = cameras;
+
+      if (cameras.length === 0) {
+        this.logger.log(`No cameras found for user ${userId}`);
+        return debug ? { ...debugInfo, message: 'No cameras found' } : undefined;
+      }
+
+      this.logger.log(`Found ${cameras.length} cameras for user ${userId}`);
+
+      // Analyze each camera
+      for (const camera of cameras) {
+        if (!camera.rtsp_url) {
+          this.logger.debug(`Skipping ${camera.camera_name}: no RTSP URL`);
+          if (debug) debugInfo.results.push({ camera: camera.camera_name, skipped: true, reason: 'no RTSP URL' });
+          continue;
+        }
+
+        const result = await this.deviceCheckAnalyzer.analyzeDeviceCheck({
+          userId,
+          cameraId: camera.camera_id,
+          cameraName: camera.camera_name,
+          rtspUrl: camera.rtsp_url,
+          locationInRoom: camera.location_in_room,
+        });
+
+        if (debug) {
+          debugInfo.results.push({
+            camera: camera.camera_name,
+            brightness: result.brightness,
+            quality: result.qualityLevel,
+            bullets: result.bullets,
+          });
+        }
+
+        // Only create suggestion if quality is not excellent
+        if (result.qualityLevel !== 'excellent') {
+          this.logger.log(
+            `Creating device check suggestion for ${camera.camera_name} (${result.qualityLevel}, ${result.brightness}%)`,
+          );
+
+          const title = `Cải thiện chất lượng camera ${camera.camera_name}`;
+          const message = result.confidenceImpact;
+
+          const meta = JSON.stringify({
+            bullets: result.bullets,
+            camera_id: camera.camera_id,
+            location: camera.location_in_room || camera.camera_name,
+            brightness: result.brightness,
+            quality_level: result.qualityLevel,
+            analysis_date: new Date().toISOString(),
+          });
+
+          const metaObj = JSON.parse(meta);
+          
+          await this.suggestionRepo.upsertSuggestion({
+            user_id: userId,
+            resource_type: 'camera',
+            resource_id: camera.camera_id,
+            type: SuggestionCategory.DEVICE_CHECK,
+            title,
+            message,
+            meta: metaObj,
+          });
+
+          this.logger.log(
+            `Upserted device check suggestion for ${camera.camera_name}`,
+          );
+        } else {
+          this.logger.log(
+            `Skipping ${camera.camera_name}: excellent quality (${result.brightness}%)`,
+          );
+        }
+      }
+
+      this.logger.log(`Completed device check analysis for user: ${userId}`);
+      return debug ? { ...debugInfo, success: true, message: 'Analysis completed' } : undefined;
+    } catch (error) {
+      this.logger.error(
+        `Failed to analyze device check for user ${userId}: ${error.message}`,
+        error.stack,
+      );
+      if (debug) {
+        return { ...debugInfo, success: false, error: error.message, stack: error.stack };
+      }
+    }
   }
 }

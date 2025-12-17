@@ -69,4 +69,45 @@ export class SuggestionScheduler {
     this.logger.log(`Manual trigger: Analyzing fall risk for user ${userId}`);
     await this.suggestionService.analyzeFallRiskForUser(userId);
   }
+
+  /**
+   * Run device check analysis for all users with cameras daily
+   * Cron: Every day at 9:00 AM
+   */
+  @Cron('0 9 * * *', {
+    name: 'device-check-daily-analysis',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async runDailyDeviceCheckAnalysis(): Promise<void> {
+    this.logger.log('Starting daily device check analysis');
+
+    try {
+      // Get distinct users who have cameras
+      const usersWithCameras = await this.prisma.client.cameras.findMany({
+        select: { user_id: true },
+        distinct: ['user_id'],
+      });
+
+      this.logger.log(`Found ${usersWithCameras.length} users with cameras`);
+
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (const { user_id } of usersWithCameras) {
+        try {
+          await this.suggestionService.analyzeDeviceCheckForUser(user_id);
+          successCount++;
+        } catch (error) {
+          this.logger.error(`Device check failed for ${user_id}: ${error.message}`);
+          failureCount++;
+        }
+      }
+
+      this.logger.log(
+        `Daily device check completed: ${successCount} succeeded, ${failureCount} failed`,
+      );
+    } catch (error) {
+      this.logger.error(`Device check scheduler failed: ${error.message}`, error.stack);
+    }
+  }
 }

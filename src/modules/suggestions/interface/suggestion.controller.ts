@@ -159,5 +159,31 @@ export class SuggestionController {
       details: { days: daysToAnalyze },
     };
   }
+
+  /**
+   * POST /api/suggestions/device-check/:userId
+   * Manually trigger device check analysis for a specific user
+   */
+  @Post('device-check/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Trigger device check analysis',
+    description: 'Manually analyze camera quality and generate device check suggestions',
+  })
+  @ApiParam({ name: 'userId', type: String, description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully triggered device check analysis',
+  })
+  async manualDeviceCheck(
+    @Param('userId') userId: string,
+    @Query('debug') debug?: string,
+  ): Promise<any> {
+    const result = await this.suggestionService.analyzeDeviceCheckForUser(userId, debug === 'true');
+    return result || { 
+      success: true,
+      message: `Device check analysis completed for user ${userId}`,
+    };
+  }
 }
 
