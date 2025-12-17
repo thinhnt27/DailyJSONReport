@@ -16,8 +16,6 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
           url: process.env.DATABASE_URL,
         },
       },
-      // Configure connection pool for pgbouncer
-      datasourceUrl: process.env.DATABASE_URL,
     });
   }
 

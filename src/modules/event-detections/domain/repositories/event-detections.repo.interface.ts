@@ -32,6 +32,32 @@ export interface IEventDetectionsRepo {
     from: Date | string,
     to: Date | string,
   ): Promise<FetchResult>;
+
+  /**
+   * Find fall events grouped by camera for a user in last N days
+   * @param userId - User ID to query
+   * @param days - Number of days to look back (default 7)
+   * @returns Array of camera-grouped fall events with counts
+   */
+  findFallEventsByUserGroupedByCamera(
+    userId: string,
+    days?: number,
+  ): Promise<
+    Array<{
+      camera_id: string;
+      camera_name: string;
+      location_in_room: string | null;
+      events: Array<{
+        event_id: string;
+        event_type: string;
+        status: string;
+        detected_at: Date;
+        confidence_score: number | null;
+        event_description: string | null;
+      }>;
+      event_count: number;
+    }>
+  >;
 }
 
 // token to use for DI so implementations can be swapped

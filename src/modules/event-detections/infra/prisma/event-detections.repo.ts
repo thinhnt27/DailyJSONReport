@@ -423,4 +423,127 @@ export class PrismaEventDetectionsRepo implements IEventDetectionsRepo {
       supplement: supplementByUser,
     };
   }
+
+  async findFallEventsByUserGroupedByCamera(
+    userId: string,
+    days: number = 7,
+  ): Promise<
+    Array<{
+      camera_id: string;
+      camera_name: string;
+      location_in_room: string | null;
+      events: Array<{
+        event_id: string;
+        event_type: string;
+        status: string;
+        detected_at: Date;
+        confidence_score: number | null;
+        event_description: string | null;
+      }>;
+      event_count: number;
+    }>
+  > {
+    const prisma = this.prisma;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - days);
+
+    // Query fall events with camera info
+    const fallEvents = await prisma.event_detections.findMany({
+      where: {
+        user_id: userId,
+        event_type: 'fall',
+        status: {
+          in: ['warning', 'danger'],
+        },
+        detected_at: {
+          gte: sevenDaysAgo,
+        },
+      },
+      select: {
+        event_id: true,
+        event_type: true,
+        status: true,
+        detected_at: true,
+        confidence_score: true,
+        camera_id: true,
+        event_description: true,
+      },
+      orderBy: {
+        detected_at: 'desc',
+      },
+    });
+
+    if (fallEvents.length === 0) {
+      return [];
+    }
+
+    // Get unique camera IDs
+    const cameraIds = [...new Set(fallEvents.map((e) => e.camera_id))];
+
+    // Fetch camera details
+    const cameras = await prisma.cameras.findMany({
+      where: {
+        camera_id: {
+          in: cameraIds,
+        },
+      },
+      select: {
+        camera_id: true,
+        camera_name: true,
+        location_in_room: true,
+      },
+    });
+
+    // Create a camera map for quick lookup
+    const cameraMap = new Map(
+      cameras.map((c) => [c.camera_id, c]),
+    );
+
+    // Group events by camera
+    const groupedMap = new Map<
+      string,
+      {
+        camera_id: string;
+        camera_name: string;
+        location_in_room: string | null;
+        events: Array<{
+          event_id: string;
+          event_type: string;
+          status: string;
+          detected_at: Date;
+          confidence_score: number | null;
+          event_description: string | null;
+        }>;
+      }
+    >();
+
+    for (const event of fallEvents) {
+      const camera = cameraMap.get(event.camera_id);
+      if (!camera) continue; // Skip if camera not found
+
+      if (!groupedMap.has(event.camera_id)) {
+        groupedMap.set(event.camera_id, {
+          camera_id: event.camera_id,
+          camera_name: camera.camera_name,
+          location_in_room: camera.location_in_room,
+          events: [],
+        });
+      }
+
+      groupedMap.get(event.camera_id)!.events.push({
+        event_id: event.event_id,
+        event_type: event.event_type,
+        status: event.status || 'unknown',
+        detected_at: event.detected_at,
+        confidence_score: event.confidence_score ? Number(event.confidence_score) : null,
+        event_description: event.event_description || null,
+      });
+    }
+
+    // Convert to array and add event_count
+    return Array.from(groupedMap.values()).map((group) => ({
+      ...group,
+      event_count: group.events.length,
+    }));
+  }
 }
