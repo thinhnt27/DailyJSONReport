@@ -185,5 +185,33 @@ export class SuggestionController {
       message: `Device check analysis completed for user ${userId}`,
     };
   }
+
+  /**
+   * POST /api/suggestions/sleep-quality/:userId
+   * Manually trigger sleep quality analysis for a specific user
+   */
+  @Post('sleep-quality/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Trigger sleep quality analysis',
+    description: 'Analyze sleep patterns and generate improvement suggestions based on patient_sleep_checkins',
+  })
+  @ApiParam({ name: 'userId', type: String, description: 'User ID' })
+  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Number of days to analyze (default: 7)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully triggered sleep quality analysis',
+  })
+  async analyzeSleepQuality(
+    @Param('userId') userId: string,
+    @Query('days') days?: number,
+  ): Promise<{ success: boolean; message: string }> {
+    const daysToAnalyze = days ? Number(days) : 7;
+    await this.suggestionService.analyzeSleepQualityForUser(userId, daysToAnalyze);
+    return { 
+      success: true,
+      message: `Sleep quality analysis completed for user ${userId}`,
+    };
+  }
 }
 

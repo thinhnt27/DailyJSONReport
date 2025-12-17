@@ -110,4 +110,45 @@ export class SuggestionScheduler {
       this.logger.error(`Device check scheduler failed: ${error.message}`, error.stack);
     }
   }
+
+  /**
+   * Run sleep quality analysis for all users with sleep checkins weekly
+   * Cron: Every Sunday at 3:00 AM (after fall risk at 2 AM)
+   */
+  @Cron('0 3 * * 0', {
+    name: 'sleep-quality-weekly-analysis',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async runWeeklySleepQualityAnalysis(): Promise<void> {
+    this.logger.log('Starting weekly sleep quality analysis');
+
+    try {
+      // Get distinct users who have sleep checkins
+      const usersWithCheckins = await this.prisma.client.patient_sleep_checkins.findMany({
+        select: { user_id: true },
+        distinct: ['user_id'],
+      });
+
+      this.logger.log(`Found ${usersWithCheckins.length} users with sleep checkins`);
+
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (const { user_id } of usersWithCheckins) {
+        try {
+          await this.suggestionService.analyzeSleepQualityForUser(user_id, 7);
+          successCount++;
+        } catch (error) {
+          this.logger.error(`Sleep analysis failed for ${user_id}: ${error.message}`);
+          failureCount++;
+        }
+      }
+
+      this.logger.log(
+        `Weekly sleep analysis completed: ${successCount} succeeded, ${failureCount} failed`,
+      );
+    } catch (error) {
+      this.logger.error(`Sleep analysis scheduler failed: ${error.message}`, error.stack);
+    }
+  }
 }

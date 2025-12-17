@@ -257,4 +257,80 @@ export class SuggestionService {
       }
     }
   }
+
+  /**
+   * Analyze sleep quality for a user based on patient_sleep_checkins data
+   */
+  async analyzeSleepQualityForUser(userId: string, days = 7): Promise<void> {
+    this.logger.log(`Starting sleep quality analysis for user: ${userId} (${days} days)`);
+
+    try {
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Get sleep checkins for the user
+      const checkins = await this.prisma.client.patient_sleep_checkins.findMany({
+        where: {
+          user_id: userId,
+          checkin_at: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: { checkin_at: 'desc' },
+      });
+
+      if (checkins.length === 0) {
+        this.logger.log(`No sleep checkins found for user ${userId} in last ${days} days`);
+        return;
+      }
+
+      this.logger.log(`Found ${checkins.length} sleep checkins for analysis`);
+
+      // Analyze sleep patterns
+      const result = await this.sleepAnalyzer.analyzeSleepQuality({
+        userId,
+        checkins: checkins.map(c => ({
+          state: c.state,
+          checkin_at: c.checkin_at,
+          meta: c.meta,
+        })),
+        days,
+      });
+
+      this.logger.log(
+        `Generated sleep analysis (AI: ${result.generatedByAI}): ${result.bullets.length} bullets`,
+      );
+
+      // Create suggestion
+      const title = 'Cải thiện chất lượng giấc ngủ';
+      const message = `Phân tích từ ${result.stats.totalCheckins} lần check-in trong ${days} ngày qua`;
+
+      const meta = {
+        bullets: result.bullets,
+        generatedByAI: result.generatedByAI,
+        stats: result.stats,
+        analysis_date: new Date().toISOString(),
+        days_analyzed: days,
+      };
+
+      await this.suggestionRepo.upsertSuggestion({
+        user_id: userId,
+        type: SuggestionCategory.SLEEP_QUALITY,
+        title,
+        message,
+        meta,
+      });
+
+      this.logger.log(`Upserted sleep quality suggestion for user ${userId}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to analyze sleep quality for user ${userId}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
 }

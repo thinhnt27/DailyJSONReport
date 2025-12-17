@@ -5,6 +5,7 @@ import { SuggestionController } from './interface/suggestion.controller';
 import { SuggestionService } from './application/suggestion.service';
 import { SuggestionAnalyzerService } from './application/suggestion-analyzer.service';
 import { DeviceCheckAnalyzerService } from './application/device-check-analyzer.service';
+import { SleepAnalyzerService } from './application/sleep-analyzer.service';
 import { SuggestionScheduler } from './application/suggestion.scheduler';
 import { PrismaSuggestionRepo } from './infra/prisma/suggestion.repo';
 import { SUGGESTION_REPO } from './domain/repositories/suggestion.repo.interface';
@@ -24,6 +25,7 @@ import { PatientCameraModule } from '../patient-camera/patient-camera.module';
     SuggestionService,
     SuggestionAnalyzerService,
     DeviceCheckAnalyzerService,
+    SleepAnalyzerService,
     SuggestionScheduler,
 
     // Repository
