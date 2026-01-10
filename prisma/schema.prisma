@@ -53,6 +53,9 @@ model cameras {
   last_heartbeat_at DateTime?          @db.Timestamptz(6)
   created_at        DateTime           @default(now()) @db.Timestamptz(6)
   updated_at        DateTime           @db.Timestamptz(6)
+  hls_url           String?
+  mse_url           String?
+  webrtc_url        String?
   users             users              @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   event_detections  event_detections[]
   snapshots         snapshots[]
@@ -65,19 +68,21 @@ model cameras {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model caregiver_invitations {
-  assignment_id    String                           @id(map: "caregiver_patient_assignments_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  caregiver_id     String                           @db.Uuid
-  customer_id      String                           @db.Uuid
-  assigned_at      DateTime                         @default(now()) @db.Timestamptz(6)
-  unassigned_at    DateTime?                        @db.Timestamptz(6)
-  is_active        Boolean                          @default(true)
-  assigned_by      String?                          @db.Uuid
-  assignment_notes String?
-  responded_at     DateTime?                        @db.Timestamptz(6)
-  expires_at       DateTime?                        @db.Timestamptz(6)
-  response_reason  String?                          @db.VarChar(255)
-  status           caregiver_invitation_status_enum @default(pending)
-  users            users?                           @relation(fields: [assigned_by], references: [user_id], map: "caregiver_assignments_assigned_by_fkey")
+  assignment_id                                   String                           @id(map: "caregiver_patient_assignments_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caregiver_id                                    String                           @db.Uuid
+  customer_id                                     String                           @db.Uuid
+  assigned_at                                     DateTime                         @default(now()) @db.Timestamptz(6)
+  unassigned_at                                   DateTime?                        @db.Timestamptz(6)
+  is_active                                       Boolean                          @default(true)
+  assigned_by                                     String?                          @db.Uuid
+  assignment_notes                                String?
+  responded_at                                    DateTime?                        @db.Timestamptz(6)
+  expires_at                                      DateTime?                        @db.Timestamptz(6)
+  response_reason                                 String?                          @db.VarChar(255)
+  status                                          caregiver_invitation_status_enum @default(pending)
+  users                                           users?                           @relation(fields: [assigned_by], references: [user_id], map: "caregiver_assignments_assigned_by_fkey")
+  users_caregiver_invitations_caregiver_idTousers users                            @relation("caregiver_invitations_caregiver_idTousers", fields: [caregiver_id], references: [user_id])
+  users_caregiver_invitations_customer_idTousers  users                            @relation("caregiver_invitations_customer_idTousers", fields: [customer_id], references: [user_id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -139,7 +144,16 @@ model event_detections {
   notification_attempts                     Int                            @default(0)
   lifecycle_state                           event_lifecycle_enum           @default(NOTIFIED)
   reliability_score                         Decimal?                       @default(0.0000) @db.Decimal(5, 4)
+  canceled_at                               DateTime?                      @db.Timestamptz(6)
+  updated_by                                String?                        @db.Uuid
+  created_by                                String?                        @db.Uuid
+  created_by_name                           String?                        @db.VarChar(255)
+  created_by_role                           String?                        @db.VarChar(50)
+  cancel_reason                             String?
+  proposed_lifecycle                        event_lifecycle_enum?
+  deleted_at                                DateTime?                      @db.Timestamptz(6)
   cameras                                   cameras                        @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
+  users_event_detections_created_byTousers  users?                         @relation("event_detections_created_byTousers", fields: [created_by], references: [user_id])
   snapshots                                 snapshots                      @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade)
   users_event_detections_user_idTousers     users                          @relation("event_detections_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
   users_event_detections_verified_byTousers users?                         @relation("event_detections_verified_byTousers", fields: [verified_by], references: [user_id])
@@ -155,10 +169,15 @@ model event_detections {
   @@index([event_type], map: "idx_ed_type")
   @@index([user_id], map: "idx_ed_user")
   @@index([verified_by], map: "idx_ed_verified_by")
-  @@index([user_id, detected_at], map: "idx_events_user_date")
+  @@index([user_id, detected_at(sort: Desc)], map: "idx_events_user_date")
   @@index([confirmation_state, pending_until], map: "idx_ed_confstate_pending")
   @@index([reliability_score], map: "idx_ed_reliab")
   @@index([lifecycle_state], map: "idx_events_lifecycle_state")
+  @@index([camera_id, confirmation_state], map: "idx_events_camera_conf_state")
+  @@index([canceled_at], map: "idx_events_canceled_at")
+  @@index([created_by], map: "idx_events_created_by")
+  @@index([deleted_at], map: "idx_events_deleted_at")
+  @@index([updated_by], map: "idx_events_updated_by")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -208,6 +227,7 @@ model notifications {
   channel                                    channel_enum            @default(push)
   business_type                              notification_type_enum? @default(event_alert)
   priority                                   String?                 @db.VarChar(50)
+  deleted_at                                 DateTime?               @db.Timestamptz(6)
   users_notifications_acknowledged_byTousers users?                  @relation("notifications_acknowledged_byTousers", fields: [acknowledged_by], references: [user_id])
   event_detections                           event_detections?       @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
   users                                      users                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -221,6 +241,7 @@ model notifications {
   @@index([created_at], map: "idx_notif_created")
   @@index([event_id], map: "idx_notif_event")
   @@index([severity], map: "idx_notif_severity")
+  @@index([deleted_at], map: "idx_notif_deleted_at")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -279,10 +300,13 @@ model patient_supplements {
   height_cm               Int?
   weight_kg               Float?
   doctors                 Json?                     @default("[]")
+  deleted_at              DateTime?                 @db.Timestamptz(6)
   patient_habits          patient_habits[]
   patient_medical_records patient_medical_records[]
   patient_sleep_checkins  patient_sleep_checkins[]
   users                   users?                    @relation(fields: [customer_id], references: [user_id])
+
+  @@index([deleted_at], map: "idx_patient_supplements_deleted_at")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -304,7 +328,7 @@ model payments {
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
   updated_at          DateTime              @db.Timestamptz(6)
   status_enum         payment_status_enum?
-  users               users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users               users                 @relation(fields: [user_id], references: [user_id])
   subscription_events subscription_events[]
   transaction         transaction?
 
@@ -317,7 +341,7 @@ model payments {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model plans {
   id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code                   String              @unique @db.VarChar(50)
+  code                   String              @db.VarChar(50)
   name                   String              @db.VarChar(255)
   description            String?
   price                  BigInt
@@ -344,6 +368,7 @@ model plans {
   subscriptions          subscriptions[]     @relation("SubscriptionToPlan")
   transactions           transaction[]       @relation("TransactionToPlan")
 
+  @@unique([code, version])
   @@index([code, is_current])
   @@index([is_active])
 }
@@ -385,7 +410,7 @@ model transaction {
   plans                plans?                @relation("TransactionToPlan", fields: [plan_id], references: [id])
   related_tx           transaction?          @relation("RelatedTx", fields: [related_tx_id], references: [tx_id])
   related_transactions transaction[]         @relation("RelatedTx")
-  subscriptions        subscriptions         @relation(fields: [subscription_id], references: [subscription_id], onDelete: Cascade)
+  subscriptions        subscriptions         @relation(fields: [subscription_id], references: [subscription_id])
 
   @@unique([subscription_id, idempotency_key], map: "uq_tx_idem_per_sub")
   @@index([status], map: "idx_tx_status")
@@ -402,30 +427,34 @@ model transaction {
 
 /// Email templates for dynamic email rendering
 model email_templates {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name             String   @unique @db.VarChar(100)
-  type             String   @db.VarChar(50)
-  subject_template String   @db.VarChar(255)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String    @unique @db.VarChar(100)
+  type             String    @db.VarChar(50)
+  subject_template String    @db.VarChar(255)
   html_template    String
   text_template    String?
   variables        Json?
-  is_active        Boolean  @default(true)
-  created_at       DateTime @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime @updatedAt @db.Timestamptz(6)
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @updatedAt @db.Timestamptz(6)
+  deleted_at       DateTime?
 
   @@index([type], map: "idx_email_templates_type")
   @@index([is_active], map: "idx_email_templates_active")
 }
 
 model snapshot_images {
-  image_id    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  snapshot_id String    @db.Uuid
-  is_primary  Boolean   @default(false)
-  image_path  String?
-  cloud_url   String?
-  created_at  DateTime  @default(now()) @db.Timestamptz(6)
-  file_size   BigInt?
-  snapshots   snapshots @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_snapshot_images_snapshot")
+  image_id      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  snapshot_id   String    @db.Uuid
+  is_primary    Boolean   @default(false)
+  image_path    String?
+  cloud_url     String?
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  file_size     BigInt?
+  deleted_at    DateTime?
+  delete_reason String?
+  deleted_by    String?
+  snapshots     snapshots @relation(fields: [snapshot_id], references: [snapshot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_snapshot_images_snapshot")
 
   @@index([created_at], map: "idx_snapshot_images_created_at")
   @@index([snapshot_id], map: "idx_snapshot_images_snapshot_id")
@@ -441,6 +470,7 @@ model snapshots {
   captured_at      DateTime           @default(now()) @db.Timestamptz(6)
   processed_at     DateTime?          @db.Timestamptz(6)
   is_processed     Boolean            @default(false)
+  cloud_url        String?
   event_detections event_detections[]
   snapshot_images  snapshot_images[]
   cameras          cameras            @relation(fields: [camera_id], references: [camera_id], onDelete: Cascade)
@@ -516,7 +546,7 @@ model subscriptions {
   unit_amount_minor     BigInt                   @default(0)
   subscription_events   subscription_events[]
   plans                 plans?                   @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
-  users                 users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users                 users                    @relation(fields: [user_id], references: [user_id])
   transactions          transaction[]
 
   @@index([current_period_end], map: "idx_sub_current_end")
@@ -526,48 +556,55 @@ model subscriptions {
   @@index([user_id], map: "idx_sub_user")
   @@index([user_id, status], map: "idx_sub_user_status")
   @@index([user_id, status, current_period_end], map: "idx_sub_user_status_end")
+  @@index([status], map: "idx_subscriptions_status")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
-  user_id                                              String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username                                             String                   @unique @db.VarChar(50)
-  email                                                String                   @unique @db.VarChar(100)
-  password_hash                                        String                   @db.VarChar(255)
-  full_name                                            String                   @db.VarChar(100)
-  role                                                 role_enum                @default(customer)
-  date_of_birth                                        DateTime?                @db.Date
-  phone_number                                         String?                  @db.VarChar(20)
-  is_active                                            Boolean                  @default(true)
-  created_at                                           DateTime                 @default(now()) @db.Timestamptz(6)
-  updated_at                                           DateTime                 @db.Timestamptz(6)
-  otp_code                                             String?
-  otp_expires_at                                       DateTime?                @db.Timestamptz(6)
-  default_payment_method_id                            String?                  @db.Uuid
-  access_grants_access_grants_caregiver_idTousers      access_grants[]          @relation("access_grants_caregiver_idTousers")
-  access_grants_access_grants_customer_idTousers       access_grants[]          @relation("access_grants_customer_idTousers")
-  activity_logs                                        activity_logs[]
-  cameras                                              cameras[]
-  caregiver_invitations                                caregiver_invitations[]
-  emergency_contacts                                   emergency_contacts[]
-  event_detections_event_detections_user_idTousers     event_detections[]       @relation("event_detections_user_idTousers")
-  event_detections_event_detections_verified_byTousers event_detections[]       @relation("event_detections_verified_byTousers")
-  event_history                                        event_history[]
-  fcm_tokens                                           fcm_tokens[]
-  notifications_notifications_acknowledged_byTousers   notifications[]          @relation("notifications_acknowledged_byTousers")
-  notifications                                        notifications[]
-  patient_habits                                       patient_habits[]
-  patient_sleep_checkins                               patient_sleep_checkins[]
-  patient_supplements                                  patient_supplements[]
-  payments                                             payments[]
-  snapshots                                            snapshots[]
-  subscription_events                                  subscription_events[]
-  subscriptions                                        subscriptions[]
-  system_config                                        system_config[]
-  ticket                                               ticket[]
-  uploads                                              uploads[]
-  user_preferences                                     user_preferences[]
+  user_id                                                         String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                                                        String                   @unique @db.VarChar(50)
+  email                                                           String                   @unique @db.VarChar(100)
+  password_hash                                                   String                   @db.VarChar(255)
+  full_name                                                       String                   @db.VarChar(100)
+  role                                                            role_enum                @default(customer)
+  date_of_birth                                                   DateTime?                @db.Date
+  phone_number                                                    String?                  @db.VarChar(20)
+  is_active                                                       Boolean                  @default(true)
+  created_at                                                      DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                                                      DateTime                 @db.Timestamptz(6)
+  otp_code                                                        String?
+  otp_expires_at                                                  DateTime?                @db.Timestamptz(6)
+  default_payment_method_id                                       String?                  @db.Uuid
+  deleted_at                                                      DateTime?                @db.Timestamptz(6)
+  access_grants_access_grants_caregiver_idTousers                 access_grants[]          @relation("access_grants_caregiver_idTousers")
+  access_grants_access_grants_customer_idTousers                  access_grants[]          @relation("access_grants_customer_idTousers")
+  activity_logs                                                   activity_logs[]
+  cameras                                                         cameras[]
+  caregiver_invitations                                           caregiver_invitations[]
+  caregiver_invitations_caregiver_invitations_caregiver_idTousers caregiver_invitations[]  @relation("caregiver_invitations_caregiver_idTousers")
+  caregiver_invitations_caregiver_invitations_customer_idTousers  caregiver_invitations[]  @relation("caregiver_invitations_customer_idTousers")
+  emergency_contacts                                              emergency_contacts[]
+  event_detections_event_detections_created_byTousers             event_detections[]       @relation("event_detections_created_byTousers")
+  event_detections_event_detections_user_idTousers                event_detections[]       @relation("event_detections_user_idTousers")
+  event_detections_event_detections_verified_byTousers            event_detections[]       @relation("event_detections_verified_byTousers")
+  event_history                                                   event_history[]
+  fcm_tokens                                                      fcm_tokens[]
+  notifications_notifications_acknowledged_byTousers              notifications[]          @relation("notifications_acknowledged_byTousers")
+  notifications                                                   notifications[]
+  patient_habits                                                  patient_habits[]
+  patient_sleep_checkins                                          patient_sleep_checkins[]
+  patient_supplements                                             patient_supplements[]
+  payments                                                        payments[]
+  snapshots                                                       snapshots[]
+  subscription_events                                             subscription_events[]
+  subscriptions                                                   subscriptions[]
+  suggestions                                                     suggestions[]
+  system_config                                                   system_config[]
+  ticket                                                          ticket[]
+  uploads                                                         uploads[]
+  user_preferences                                                user_preferences[]
+  user_roles                                                      user_roles[]
 
   @@index([created_at], map: "idx_users_created_at")
   @@index([email], map: "idx_users_email")
@@ -576,6 +613,7 @@ model users {
   @@index([username], map: "idx_users_username")
   @@index([phone_number], map: "idx_users_phone_number")
   @@index([default_payment_method_id], map: "idx_users_default_payment_method")
+  @@index([deleted_at], map: "idx_users_deleted_at")
 }
 
 model ticket {
@@ -624,29 +662,34 @@ model uploads {
 }
 
 model permissions {
-  name          String   @unique @db.VarChar(100)
-  description   String?  @db.VarChar(255)
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @db.Timestamptz(6)
-  permission_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique @db.VarChar(100)
+  description      String?            @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @db.Timestamptz(6)
+  permission_id    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_permissions role_permissions[]
 
   @@index([name], map: "idx_permissions_name")
 }
 
 model roles {
-  name        String   @unique @db.VarChar(50)
-  description String?  @db.VarChar(255)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @db.Timestamptz(6)
-  role_id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique @db.VarChar(50)
+  description      String?            @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @db.Timestamptz(6)
+  role_id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_permissions role_permissions[]
+  user_roles       user_roles[]
 
   @@index([name], map: "idx_roles_name")
 }
 
 model role_permissions {
-  role_id       String   @db.Uuid
-  permission_id String   @db.Uuid
-  assigned_at   DateTime @default(now()) @db.Timestamptz(6)
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  assigned_at   DateTime    @default(now()) @db.Timestamptz(6)
+  permissions   permissions @relation(fields: [permission_id], references: [permission_id], onDelete: Cascade)
+  roles         roles       @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
 
   @@id([role_id, permission_id])
   @@index([permission_id], map: "idx_role_permissions_permission")
@@ -707,16 +750,19 @@ model event_history {
 }
 
 model system_config {
-  setting_id    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  setting_key   String         @unique(map: "idx_system_config_key") @db.VarChar(100)
-  setting_value String
-  description   String?
-  data_type     data_type_enum @default(string)
-  category      String?        @default("general") @db.VarChar(50)
-  is_encrypted  Boolean?       @default(false)
-  updated_at    DateTime       @db.Timestamptz(6)
-  updated_by    String         @db.Uuid
-  users         users          @relation(fields: [updated_by], references: [user_id])
+  setting_id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  setting_key       String         @unique(map: "idx_system_config_key") @db.VarChar(100)
+  setting_value     String
+  description       String?
+  data_type         data_type_enum @default(string)
+  category          String?        @default("general") @db.VarChar(50)
+  is_encrypted      Boolean?       @default(false)
+  updated_at        DateTime       @db.Timestamptz(6)
+  updated_by        String         @db.Uuid
+  is_readonly       Boolean?       @default(false)
+  is_system_managed Boolean?       @default(false)
+  readonly_reason   String?
+  users             users          @relation(fields: [updated_by], references: [user_id])
 
   @@index([category], map: "idx_ss_category")
   @@index([data_type], map: "idx_ss_dtype")
@@ -757,6 +803,8 @@ model user_roles {
   user_id     String   @db.Uuid
   role_id     String   @db.Uuid
   assigned_at DateTime @default(now()) @db.Timestamptz(6)
+  roles       roles    @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
+  users       users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@id([user_id, role_id])
   @@index([role_id], map: "idx_user_roles_role")
@@ -803,6 +851,7 @@ model suggestions {
   meta             Json?
   status           suggestion_status_enum @default(ACTIVE)
   title            String?                @db.VarChar(255)
+  users            users?                 @relation(fields: [user_id], references: [user_id])
 
   @@index([next_notify_at], map: "idx_suggestions_next_notify_at")
   @@index([skip_until], map: "idx_suggestions_skip_until")
@@ -1051,6 +1100,7 @@ enum channel_enum {
   push
   in_app
   webhook
+  call
 }
 
 enum event_history_action_enum {
@@ -1065,6 +1115,12 @@ enum event_history_action_enum {
   abandoned
   escalated
   handled
+  autocall_placed
+  emergency_response_received
+  emergency_escalation_failed
+  proposed_delete
+  delete_confirmed
+  delete_rejected
 }
 
 enum notification_type_enum {
