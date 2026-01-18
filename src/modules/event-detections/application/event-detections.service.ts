@@ -74,27 +74,27 @@ export class EventDetectionsService {
     const batchesWarnDanger = UsersBatchGrouper.group(users, {
       excludeNormal: true, // mặc định đã true
     });
-    this.logger.log(
-      `fetchEventsAndAnalyze: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
-    );
-    // các user cần chạy
-    const targetIds = new Set([
-      '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
-      '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
-      '37cbad15-483d-42ff-b07d-fbf3cd1cc863',
-    ]);
+    // this.logger.log(
+    //   `fetchEventsAndAnalyze: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
+    // );
+    // // các user cần chạy
+    // const targetIds = new Set([
+    //   '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
+    //   '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
+    //   '37cbad15-483d-42ff-b07d-fbf3cd1cc863',
+    // ]);
 
-    const targetedBatches = batchesWarnDanger.filter(
-      (b) => b.user_id && targetIds.has(b.user_id),
-    );
+    // const targetedBatches = batchesWarnDanger.filter(
+    //   (b) => b.user_id && targetIds.has(b.user_id),
+    // );
 
-    this.logger.log(
-      `fetchEventsAndAnalyze: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
-    );
+    // this.logger.log(
+    //   `fetchEventsAndAnalyze: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
+    // );
 
-    for (const [idx, batch] of targetedBatches.entries()) {
+    for (const [idx, batch] of batchesWarnDanger.entries()) {
       this.logger.debug(
-        `[Batch ${idx + 1}/${targetedBatches.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
+        `[Batch ${idx + 1}/${batchesWarnDanger.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
       );
 
       // Log payload đẹp, dễ đọc
@@ -158,26 +158,26 @@ export class EventDetectionsService {
     const batchesWarnDanger = UsersBatchGrouper.group(users, {
       excludeNormal: true, // mặc định đã true
     });
-    this.logger.log(
-      `fetchEventsAndAnalyzeToFile: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
-    );
-    // các user cần chạy
-    const targetIds = new Set([
-      '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
-      '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
-    ]);
+    // this.logger.log(
+    //   `fetchEventsAndAnalyzeToFile: total users=${users.length}, batches (warning/danger)=${batchesWarnDanger.length}`,
+    // );
+    // // các user cần chạy
+    // const targetIds = new Set([
+    //   '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
+    //   '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
+    // ]);
 
-    const targetedBatches = batchesWarnDanger.filter(
-      (b) => b.user_id && targetIds.has(b.user_id),
-    );
+    // const targetedBatches = batchesWarnDanger.filter(
+    //   (b) => b.user_id && targetIds.has(b.user_id),
+    // );
 
-    this.logger.log(
-      `fetchEventsAndAnalyzeToFile: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
-    );
+    // this.logger.log(
+    //   `fetchEventsAndAnalyzeToFile: targeted users=${targetIds.size}, targeted batches=${targetedBatches.length}`,
+    // );
 
-    for (const [idx, batch] of targetedBatches.entries()) {
+    for (const [idx, batch] of batchesWarnDanger.entries()) {
       this.logger.debug(
-        `[Batch ${idx + 1}/${targetedBatches.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
+        `[Batch ${idx + 1}/${batchesWarnDanger.length}] user=${batch.user_id} | events=${batch['event-detections'].length}`,
       );
 
       // Log payload đẹp, dễ đọc
@@ -622,5 +622,9 @@ export class EventDetectionsService {
     for (const w of writes) {
       this.logger.log(` - ${w.fullPath} (${w.size}B) created=${w.created}`);
     }
+  }
+
+  async getMockAnalysisByDate(userId: string, dateStr: string) {
+    return this.files.getMockAnalysisByDate(userId, dateStr);
   }
 }

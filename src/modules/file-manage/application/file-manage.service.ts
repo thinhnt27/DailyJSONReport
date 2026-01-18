@@ -629,4 +629,86 @@ export class FileManageService {
       totalAnalyses,
     };
   }
+
+  private parseVNDate(dateStr: string): Date {
+    const [dd, mm, yyyy] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(yyyy, mm - 1, dd));
+  }
+  async getMockAnalysisByDate(userId: string, dateStr: string) {
+    if (!DATE_DDMMYYYY.test(dateStr)) {
+      throw new BadRequestException('date must be dd-MM-yyyy');
+    }
+
+    const safeUserId = sanitizeUserId(userId);
+    const dir = join(this.baseDir, 'analyses', safeUserId);
+
+    // 1. List files
+    const files = (await fs.readdir(dir)).filter((f) => f.endsWith('.json'));
+
+    if (files.length === 0) {
+      throw new NotFoundException('No analysis files found for user');
+    }
+
+    // 2. Pick random file
+    const randomFile = files[Math.floor(Math.random() * files.length)];
+    const fullPath = join(dir, randomFile);
+
+    // 3. Read & parse
+    const raw = await fs.readFile(fullPath, 'utf-8');
+    const parsed = JSON.parse(raw);
+
+    // 4. Rewrite data
+    const targetDate = this.parseVNDate(dateStr);
+
+    const rewritten = this.rewriteAnalysisDate(parsed, targetDate, dateStr);
+
+    // 5. Save to new file
+    const fileName = `${dateStr}.json`; // vd: 31-10-2025.json
+    const targetPath = join(dir, fileName);
+
+    await fs.mkdir(dirname(targetPath), { recursive: true });
+
+    const buf = Buffer.from(JSON.stringify(rewritten, null, 2), 'utf-8');
+    await fs.writeFile(targetPath, buf);
+
+    // ========================================================
+
+    return {
+      saved: true,
+      sourceFile: randomFile,
+      targetFile: targetPath,
+      data: rewritten,
+    };
+  }
+
+  private rewriteAnalysisDate(data: any, targetDate: Date, dateStr: string) {
+    const rewriteTime = (iso: string) => {
+      const old = new Date(iso);
+      const rewritten = new Date(
+        Date.UTC(
+          targetDate.getUTCFullYear(),
+          targetDate.getUTCMonth(),
+          targetDate.getUTCDate(),
+          old.getUTCHours(),
+          old.getUTCMinutes(),
+          old.getUTCSeconds(),
+          old.getUTCMilliseconds(),
+        ),
+      );
+      return rewritten.toISOString();
+    };
+
+    return {
+      ...data,
+      date: dateStr.replace(/-/g, '/'), // "31/10/2025"
+      analyses: data.analyses.map((a: any) => ({
+        ...a,
+        dailyActivityLog: a.dailyActivityLog.map((log: any) => ({
+          ...log,
+          start_time: rewriteTime(log.start_time),
+          end_time: rewriteTime(log.end_time),
+        })),
+      })),
+    };
+  }
 }

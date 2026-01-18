@@ -163,4 +163,28 @@ export class EventDetectionsController {
       users: userIds ?? 'ALL',
     };
   }
+
+  @Post('analysis-file-user')
+  @HttpCode(200)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          example: '37cbad15-483d-42ff-b07d-fbf3cd1cc863',
+        },
+        date: {
+          type: 'string',
+          example: '31-10-2025',
+        },
+      },
+      required: ['userId', 'date'],
+    },
+  })
+  async mockAnalysisByDate(
+    @Body() dto: { userId: string; date: string }, // dd-MM-yyyy
+  ) {
+    return this.service.getMockAnalysisByDate(dto.userId, dto.date);
+  }
 }

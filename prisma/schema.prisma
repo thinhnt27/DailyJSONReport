@@ -515,38 +515,39 @@ model subscription_events {
 }
 
 model subscriptions {
-  subscription_id       String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String                   @db.Uuid
+  subscription_id       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String                    @db.Uuid
   plan_code             String
-  plan_id               String?                  @db.Uuid
-  status                subscription_status_enum @default(active)
-  billing_period        billing_period_enum      @default(none)
-  started_at            DateTime                 @default(now()) @db.Timestamptz(6)
-  current_period_start  DateTime                 @default(now()) @db.Timestamptz(6)
-  current_period_end    DateTime?                @db.Timestamptz(6)
-  trial_end_at          DateTime?                @db.Timestamptz(6)
-  canceled_at           DateTime?                @db.Timestamptz(6)
-  ended_at              DateTime?                @db.Timestamptz(6)
-  auto_renew            Boolean                  @default(true)
-  extra_camera_quota    Int                      @default(0)
-  extra_caregiver_seats Int                      @default(0)
-  extra_sites           Int                      @default(0)
-  extra_storage_gb      Int                      @default(0)
+  plan_id               String?                   @db.Uuid
+  status                subscription_status_enum  @default(active)
+  billing_period        billing_period_enum       @default(none)
+  started_at            DateTime                  @default(now()) @db.Timestamptz(6)
+  current_period_start  DateTime                  @default(now()) @db.Timestamptz(6)
+  current_period_end    DateTime?                 @db.Timestamptz(6)
+  trial_end_at          DateTime?                 @db.Timestamptz(6)
+  canceled_at           DateTime?                 @db.Timestamptz(6)
+  ended_at              DateTime?                 @db.Timestamptz(6)
+  auto_renew            Boolean                   @default(true)
+  extra_camera_quota    Int                       @default(0)
+  extra_caregiver_seats Int                       @default(0)
+  extra_sites           Int                       @default(0)
+  extra_storage_gb      Int                       @default(0)
   notes                 String?
-  last_payment_at       DateTime?                @db.Timestamptz(6)
-  version               String?                  @db.VarChar(20)
-  cancel_at_period_end  Boolean                  @default(false)
-  offer_start_date      DateTime?                @db.Timestamptz(6)
-  offer_end_date        DateTime?                @db.Timestamptz(6)
-  renewal_attempt_count Int                      @default(0)
-  next_renew_attempt_at DateTime?                @db.Timestamptz(6)
-  dunning_stage         String?                  @db.VarChar(50)
+  last_payment_at       DateTime?                 @db.Timestamptz(6)
+  version               String?                   @db.VarChar(20)
+  cancel_at_period_end  Boolean                   @default(false)
+  offer_start_date      DateTime?                 @db.Timestamptz(6)
+  offer_end_date        DateTime?                 @db.Timestamptz(6)
+  renewal_attempt_count Int                       @default(0)
+  next_renew_attempt_at DateTime?                 @db.Timestamptz(6)
+  dunning_stage         String?                   @db.VarChar(50)
   last_renewal_error    String?
   plan_snapshot         Json?
-  unit_amount_minor     BigInt                   @default(0)
+  unit_amount_minor     BigInt                    @default(0)
+  previous_status       subscription_status_enum?
   subscription_events   subscription_events[]
-  plans                 plans?                   @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
-  users                 users                    @relation(fields: [user_id], references: [user_id])
+  plans                 plans?                    @relation("SubscriptionToPlan", fields: [plan_id], references: [id])
+  users                 users                     @relation(fields: [user_id], references: [user_id])
   transactions          transaction[]
 
   @@index([current_period_end], map: "idx_sub_current_end")
@@ -604,7 +605,7 @@ model users {
   ticket                                                          ticket[]
   uploads                                                         uploads[]
   user_preferences                                                user_preferences[]
-  user_roles                                                      user_roles[]
+  user_roles                                                      user_roles?
 
   @@index([created_at], map: "idx_users_created_at")
   @@index([email], map: "idx_users_email")
@@ -800,17 +801,16 @@ model user_preferences {
 }
 
 model user_roles {
-  user_id     String   @db.Uuid
+  user_id     String   @id @unique @db.Uuid
   role_id     String   @db.Uuid
   assigned_at DateTime @default(now()) @db.Timestamptz(6)
   roles       roles    @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
   users       users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  @@id([user_id, role_id])
   @@index([role_id], map: "idx_user_roles_role")
-  @@index([user_id], map: "idx_user_roles_user")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model patient_sleep_checkins {
   id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id                 String                   @db.Uuid
@@ -1046,6 +1046,7 @@ enum subscription_status_enum {
   suspended
   canceled
   expired
+  pending_payment
 }
 
 enum activity_action_enum {
