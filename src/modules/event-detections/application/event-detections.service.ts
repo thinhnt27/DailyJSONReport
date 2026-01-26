@@ -81,7 +81,7 @@ export class EventDetectionsService {
     const targetIds = new Set([
       '82f8c132-72e0-4c77-97a6-9c2a12dc1c49',
       '9943b3a7-ec53-4508-a9c2-39bda13ed6bc',
-      '37cbad15-483d-42ff-b07d-fbf3cd1cc863',
+      '3dfc9915-13a1-4e56-99d0-1c6f7265ee87',
     ]);
 
     const targetedBatches = batchesWarnDanger.filter(
